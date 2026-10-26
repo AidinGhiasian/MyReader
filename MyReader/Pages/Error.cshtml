@@ -1,0 +1,39 @@
+﻿@page
+@model IndexModel
+@{
+	ViewData["Title"] = "MyReader";
+}
+
+<div class="reader">
+	<header class="reader-header">
+		<div>
+			<h1>MyReader</h1>
+			<p>همه‌ی فایل‌هات، یک‌جا.</p>
+		</div>
+		<button id="openFile">انتخاب فایل</button>
+		<input type="file" id="fileInput" hidden
+		       accept=".txt,.md,.json,.xml,.csv,.log,.html,.css,.js,.cs,.ini,.yaml,.yml,.pdf" />
+	</header>
+
+	<main class="reader-main">
+		<section class="welcome" id="welcome">
+			<div class="file-icon">📚</div>
+			<h2>چی می‌خوای بخونی؟</h2>
+			<p>فایل موردنظرت رو انتخاب کن یا اینجا رهاش کن.</p>
+			<button id="chooseFile">باز کردن فایل</button>
+		</section>
+
+		<section id="fileView" hidden>
+			<div class="file-info">
+				<strong id="fileName"></strong>
+				<span id="fileSize"></span>
+			</div>
+			<pre id="textContent"></pre>
+			<iframe id="pdfContent" title="نمایش PDF" hidden></iframe>
+		</section>
+	</main>
+</div>
+
+@section Scripts {
+	<script src="~/js/reader.js" asp-append-version="true"></script>
+}
