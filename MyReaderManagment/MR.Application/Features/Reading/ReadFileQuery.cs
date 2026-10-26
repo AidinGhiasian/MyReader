@@ -10,5 +10,6 @@ namespace MyReaderManagment.MR.Application.Features.Reading
     {
         public Stream FileStream { get; set; }
         public string FileName { get; set; }
+
     }
 }
