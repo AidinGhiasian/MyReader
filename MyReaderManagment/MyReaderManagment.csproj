@@ -7,7 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="MR.Domain\" />
+    <Folder Include="MR.Infrastructure\MR.Domain\" />
   </ItemGroup>
 
 </Project>
