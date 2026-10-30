@@ -106,8 +106,10 @@ body {
     }
 
     #docxContainer img {
+        display: block;
         max-width: 100%;
         height: auto;
+        margin: 16px auto;
     }
 
     #docxContainer table {
@@ -119,6 +121,10 @@ body {
     #docxContainer th {
         border: 1px solid #bbb;
         padding: 6px 10px;
+    }
+
+    #docxContainer p {
+        margin: 0 0 12px;
     }
 
 [hidden] {

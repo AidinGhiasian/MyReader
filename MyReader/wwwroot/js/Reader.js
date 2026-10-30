@@ -1,112 +1,55 @@
 ﻿
-import {
-    getDocument,
-    GlobalWorkerOptions
-} from "/lib/pdfjs/build/pdf.mjs";
-
-GlobalWorkerOptions.workerSrc =
-    "/lib/pdfjs/build/pdf.worker.mjs";
-
-const uploadForm = document.getElementById("uploadForm");
-const fileInput = document.getElementById("fileInput");
-const uploadSection = document.getElementById("uploadSection");
-const readingSection = document.getElementById("readingSection");
-const pagesContainer = document.getElementById("pagesContainer");
-const textContainer = document.getElementById("textContainer");
-const docxContainer = document.getElementById("docxContainer");
-
-uploadForm.addEventListener("submit", async (event) => {
-    event.preventDefault();
-
-    const file = fileInput.files[0];
-
-    if (!file) return;
-
-    uploadSection.hidden = true;
-    readingSection.hidden = false;
-
-    pagesContainer.replaceChildren();
-    textContainer.textContent = "";
-    docxContainer.replaceChildren();
-
-    pagesContainer.hidden = true;
-    textContainer.hidden = true;
-    docxContainer.hidden = true;
-
-    try {
-        const extension = file.name.split(".").pop().toLowerCase();
-
-        if (extension === "pdf") {
-            await openPdf(file);
-        } else if (extension === "txt") {
-            await openText(file);
-        } else if (extension === "docx") {
-            await openDocx(file);
-        } else {
-            throw new Error("Unsupported file format.");
-        }
-    } catch (error) {
-        console.error(error);
-
-        readingSection.hidden = true;
-        uploadSection.hidden = false;
-
-        alert("Could not open this file.");
-    }
-});
-
-async function openPdf(file) {
-    pagesContainer.hidden = false;
-
-    const data = new Uint8Array(await file.arrayBuffer());
-    const pdf = await getDocument({ data }).promise;
-
-    for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber++) {
-        const page = await pdf.getPage(pageNumber);
-
-        const containerWidth = pagesContainer.clientWidth - 32;
-        const originalViewport = page.getViewport({ scale: 1 });
-
-        const scale = Math.min(
-            containerWidth / originalViewport.width,
-            1.5
-        );
-
-        const viewport = page.getViewport({ scale });
-
-        const canvas = document.createElement("canvas");
-        const context = canvas.getContext("2d");
-
-        canvas.className = "pdf-page";
-        canvas.width = Math.floor(viewport.width);
-        canvas.height = Math.floor(viewport.height);
-
-        pagesContainer.appendChild(canvas);
-
-        await page.render({
-            canvasContext: context,
-            viewport: viewport
-        }).promise;
-    }
+@page
+@model IndexModel
+@{
+    Layout = null;
+    ViewData["Title"] = "MyReader";
 }
 
-async function openText(file) {
-    textContainer.hidden = false;
-    textContainer.textContent = await file.text();
-}
+< !DOCTYPE html >
+    <html lang="en">
+        <head>
+            <meta charset="utf-8" />
+            <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-async function openDocx(file) {
-    if (!window.mammoth || !window.DOMPurify) {
-        throw new Error("DOCX libraries could not be loaded.");
-    }
+            <title>MyReader</title>
 
-    docxContainer.hidden = false;
+            <link rel="stylesheet"
+                href="~/css/Reader.css"
+                asp-append-version="true" />
+        </head>
+        <body>
+            <main id="app">
 
-    const arrayBuffer = await file.arrayBuffer();
+                <section id="uploadSection">
+                    <h1>Welcome to MY Reader :)</h1>
 
-    const result = await window.mammoth.convertToHtml({
-        arrayBuffer
-    });
+                    <form id="uploadForm">
+                        <label for="fileInput">Select a file to upload:</label>
 
-    docxContainer.innerHTML = window.DOMPurify.sanitize(result.value);
-}
+                        <input type="file"
+                            id="fileInput"
+                            name="uploadedFile"
+                            accept=".pdf,.txt,.docx"
+                            required />
+
+                        <button type="submit">Upload</button>
+                    </form>
+                </section>
+
+                <section id="readingSection" hidden>
+                    <div id="pagesContainer"></div>
+
+                    <pre id="textContainer" hidden></pre>
+
+                    <article id="docxContainer" hidden></article>
+                </section>
+
+            </main>
+
+            <script src="~/lib/mammoth/mammoth.browser.min.js"></script>
+            <script src="~/lib/dompurify/purify.min.js"></script>
+
+            <script type="module" src="~/js/Reader.js" asp-append-version="true"></script>
+        </body>
+    </html>
