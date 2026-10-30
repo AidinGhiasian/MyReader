@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
-namespace MyReader.Web.Pages
+namespace MyReader.Web.Pages.Reading
 {
     public class ReaderModel : PageModel
     {

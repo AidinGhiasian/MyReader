@@ -1,13 +1,37 @@
 ﻿@page
 @model IndexModel
 @{
-    ViewData["Title"] = "Home page";
+    Layout = null;
+    ViewData["Title"] = "MyReader";
 }
-<h1>
-    Welcome to MY Reader :)
-</h1>
-<form method="post" enctype="multipart/form-data">
-    <label for="File">Select a file to upload:</label>
-    <input type="file" id="File" name="uploadedFile" accept=".pdf" />
-    <button type="submit">Upload</button>
-</form>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MyReader</title>
+    <link rel="stylesheet" href="~/css/reader.css" asp-append-version="true" />
+</head>
+<body>
+    <main id="app">
+        <section id="uploadSection">
+            <h1>Welcome to MY Reader :)</h1>
+
+            <form id="uploadForm">
+                <label for="fileInput">Select a file to upload:</label>
+                <input type="file" id="fileInput" name="uploadedFile"
+                       accept=".pdf,.txt" required />
+                <button type="submit">Upload</button>
+            </form>
+        </section>
+
+        <section id="readingSection" hidden>
+            <div id="pagesContainer"></div>
+            <pre id="textContainer" hidden></pre>
+        </section>
+    </main>
+
+    <script type="module" src="~/js/reader.js" asp-append-version="true"></script>
+</body>
+</html>

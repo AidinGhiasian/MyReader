@@ -1,0 +1,92 @@
+﻿
+* {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    width: 100%;
+    min-height: 100%;
+    margin: 0;
+}
+
+body {
+    background: #111318;
+    color: #f2f2f2;
+    font-family: "Segoe UI", sans-serif;
+}
+
+#app {
+    width: 100%;
+    min-height: 100vh;
+}
+
+#uploadSection {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 22px;
+}
+
+    #uploadSection h1 {
+        margin: 0;
+        font-size: 25px;
+        font-weight: 500;
+    }
+
+#uploadForm {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+    #uploadForm label {
+        font-size: 14px;
+    }
+
+    #uploadForm input,
+    #uploadForm button {
+        font: inherit;
+    }
+
+#readingSection {
+    width: 100%;
+    min-height: 100vh;
+}
+
+#pagesContainer {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    padding: 16px 0;
+}
+
+.pdf-page {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    background: white;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
+}
+
+[hidden] {
+    display: none !important;
+}
+
+#textContainer {
+    width: 100%;
+    min-height: 100vh;
+    margin: 0;
+    padding: 40px;
+    color: #f2f2f2;
+    background: #111318;
+    font-family: "Segoe UI", sans-serif;
+    font-size: 16px;
+    line-height: 1.9;
+    white-space: pre-wrap;
+    overflow-wrap: break-word;
+}

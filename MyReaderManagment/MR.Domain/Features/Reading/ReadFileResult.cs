@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MyReaderManagment.MR.Application.Features.Reading
+namespace MyReaderManagment.MR.Domain.Features.Reading
 {
     //تایین کننده خروجی های فایل مورد نظر
     public class ReadFileResult

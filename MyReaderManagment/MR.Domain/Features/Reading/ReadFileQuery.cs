@@ -1,4 +1,4 @@
-﻿namespace MyReaderManagment.MR.Application.Features.Reading
+﻿namespace MyReaderManagment.MR.Domain.Features.Reading
 {
     //گرفتن فایل از کلاینت
     public class ReadFileQuery

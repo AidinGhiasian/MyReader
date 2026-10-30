@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 
-namespace MyReaderManagment.MR.Application.Features.Reading
+namespace MyReaderManagment.MR.Domain.Features.Reading
 {
     //گرفتن فایل از کویری و انجام منطق برنامه  و خروجی دادن به صورت ریسالت
     public class ReadFileHandler
