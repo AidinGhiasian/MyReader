@@ -20,8 +20,11 @@
 
             <form id="uploadForm">
                 <label for="fileInput">Select a file to upload:</label>
-                <input type="file" id="fileInput" name="uploadedFile"
-                       accept=".pdf,.txt" required />
+                <input type="file"
+                       id="fileInput"
+                       name="uploadedFile"
+                       accept=".pdf,.txt,.docx"
+                       required />
                 <button type="submit">Upload</button>
             </form>
         </section>
@@ -29,9 +32,12 @@
         <section id="readingSection" hidden>
             <div id="pagesContainer"></div>
             <pre id="textContainer" hidden></pre>
+            <article id="docxContainer" hidden></article>
         </section>
     </main>
 
+    <script src="~/lib/mammoth/mammoth.browser.min.js"></script>
+    <script src="~/lib/dompurify/purify.min.js"></script>
     <script type="module" src="~/js/reader.js" asp-append-version="true"></script>
 </body>
 </html>

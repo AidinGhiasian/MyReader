@@ -13,6 +13,7 @@ const uploadSection = document.getElementById("uploadSection");
 const readingSection = document.getElementById("readingSection");
 const pagesContainer = document.getElementById("pagesContainer");
 const textContainer = document.getElementById("textContainer");
+const docxContainer = document.getElementById("docxContainer");
 
 uploadForm.addEventListener("submit", async (event) => {
     event.preventDefault();
@@ -25,9 +26,12 @@ uploadForm.addEventListener("submit", async (event) => {
     readingSection.hidden = false;
 
     pagesContainer.replaceChildren();
-    textContainer.replaceChildren();
+    textContainer.textContent = "";
+    docxContainer.replaceChildren();
+
     pagesContainer.hidden = true;
     textContainer.hidden = true;
+    docxContainer.hidden = true;
 
     try {
         const extension = file.name.split(".").pop().toLowerCase();
@@ -36,6 +40,8 @@ uploadForm.addEventListener("submit", async (event) => {
             await openPdf(file);
         } else if (extension === "txt") {
             await openText(file);
+        } else if (extension === "docx") {
+            await openDocx(file);
         } else {
             throw new Error("Unsupported file format.");
         }
@@ -87,4 +93,20 @@ async function openPdf(file) {
 async function openText(file) {
     textContainer.hidden = false;
     textContainer.textContent = await file.text();
+}
+
+async function openDocx(file) {
+    if (!window.mammoth || !window.DOMPurify) {
+        throw new Error("DOCX libraries could not be loaded.");
+    }
+
+    docxContainer.hidden = false;
+
+    const arrayBuffer = await file.arrayBuffer();
+
+    const result = await window.mammoth.convertToHtml({
+        arrayBuffer
+    });
+
+    docxContainer.innerHTML = window.DOMPurify.sanitize(result.value);
 }

@@ -73,10 +73,6 @@ body {
     box-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
 }
 
-[hidden] {
-    display: none !important;
-}
-
 #textContainer {
     width: 100%;
     min-height: 100vh;
@@ -89,4 +85,42 @@ body {
     line-height: 1.9;
     white-space: pre-wrap;
     overflow-wrap: break-word;
+}
+
+#docxContainer {
+    width: 100%;
+    min-height: 100vh;
+    padding: 48px max(24px, calc((100% - 850px) / 2));
+    background: #fff;
+    color: #222;
+    font-family: "Segoe UI", sans-serif;
+    font-size: 16px;
+    line-height: 1.9;
+    overflow-wrap: break-word;
+}
+
+    #docxContainer h1,
+    #docxContainer h2,
+    #docxContainer h3 {
+        line-height: 1.4;
+    }
+
+    #docxContainer img {
+        max-width: 100%;
+        height: auto;
+    }
+
+    #docxContainer table {
+        max-width: 100%;
+        border-collapse: collapse;
+    }
+
+    #docxContainer td,
+    #docxContainer th {
+        border: 1px solid #bbb;
+        padding: 6px 10px;
+    }
+
+[hidden] {
+    display: none !important;
 }

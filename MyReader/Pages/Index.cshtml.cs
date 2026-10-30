@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using MyReaderManagment.MR.Application.Features.Reading;
+using MyReaderManagment.MR.Domain.Features.Reading;
 using System.Security.Cryptography;
 
 namespace MyReader.Pages
