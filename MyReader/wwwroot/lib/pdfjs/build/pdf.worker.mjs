@@ -50,8 +50,8 @@ const AnnotationMode = (/* unused pure expression or super */ null && ({
   ENABLE_FORMS: 2,
   ENABLE_STORAGE: 3
 }));
-const AnnotationPrefix = "pdfjs_internal_id_";
-const AnnotationEditorPrefix = "pdfjs_internal_editor_";
+const AnnotationPrefix = "pdfjs_public_id_";
+const AnnotationEditorPrefix = "pdfjs_public_editor_";
 const AnnotationEditorType = {
   DISABLE: -1,
   NONE: 0,
@@ -17284,7 +17284,7 @@ function type1FontGlyphMapping(properties, builtInEncoding, glyphNames) {
   const charCodeToGlyphId = new Map();
   let glyphId, baseEncoding;
   const isSymbolicFont = !!(properties.flags & FontFlags.Symbolic);
-  if (properties.isInternalFont) {
+  if (properties.ispublicFont) {
     baseEncoding = builtInEncoding;
     for (let charCode = 0; charCode < baseEncoding.length; charCode++) {
       glyphId = glyphNames.indexOf(baseEncoding[charCode]);
@@ -20856,7 +20856,7 @@ class CFFFont {
       return charCodeToGlyphId;
     }
     let encoding = cff.encoding ? cff.encoding.encoding : null;
-    if (properties.isInternalFont) {
+    if (properties.ispublicFont) {
       encoding = properties.defaultEncoding;
     }
     return type1FontGlyphMapping(properties, encoding, charsets);
@@ -26156,7 +26156,7 @@ function adjustWidths(properties) {
   properties.defaultWidth *= scale;
 }
 function adjustTrueTypeToUnicode(properties, isSymbolicFont, nameRecords) {
-  if (properties.isInternalFont) {
+  if (properties.ispublicFont) {
     return;
   }
   if (properties.hasIncludedToUnicodeMap) {
@@ -26199,7 +26199,7 @@ function adjustTrueTypeToUnicode(properties, isSymbolicFont, nameRecords) {
   properties.toUnicode.amend(toUnicode);
 }
 function adjustType1ToUnicode(properties, builtInEncoding) {
-  if (properties.isInternalFont) {
+  if (properties.ispublicFont) {
     return;
   }
   if (properties.hasIncludedToUnicodeMap) {
@@ -26697,7 +26697,7 @@ function createOS2Table(properties, charCodeToGlyphId, override) {
       } else if (position < 123) {
         ulUnicodeRange4 |= 1 << position - 96;
       } else {
-        throw new FormatError("Unicode ranges Bits > 123 are reserved for internal usage");
+        throw new FormatError("Unicode ranges Bits > 123 are reserved for public usage");
       }
     }
     if (lastCharIndex > 0xffff) {
@@ -28403,7 +28403,7 @@ class Font {
           }
         }
       }
-      if (!properties.isInternalFont && !charCodeToGlyphId.has(0) && hasGlyph(0)) {
+      if (!properties.ispublicFont && !charCodeToGlyphId.has(0) && hasGlyph(0)) {
         charCodeToGlyphId.set(0, 0);
       }
     }
@@ -33543,7 +33543,7 @@ class PDFImage {
     if (!this.smask && !this.mask && this.colorSpace.name === "DeviceRGBA") {
       imgData.kind = ImageKind.RGBA_32BPP;
       const imgArray = imgData.data = await this.getImageBytes(originalHeight * originalWidth * 4, {
-        internal: isOffscreenCanvasSupported && mustBeResized
+        public: isOffscreenCanvasSupported && mustBeResized
       });
       if (this.jpxPremultiplied) {
         const matteRgb = this.preblendMatte;
@@ -33570,7 +33570,7 @@ class PDFImage {
           return image;
         }
         const data = await this.getImageBytes(originalHeight * rowBytes, {
-          internal: isOffscreenCanvasSupported && mustBeResized
+          public: isOffscreenCanvasSupported && mustBeResized
         });
         if (isOffscreenCanvasSupported) {
           if (mustBeResized) {
@@ -33625,7 +33625,7 @@ class PDFImage {
               drawWidth,
               drawHeight,
               forceRGBA: true,
-              internal: true
+              public: true
             });
             return this.createBitmap(ImageKind.RGBA_32BPP, drawWidth, drawHeight, rgba);
           }
@@ -33637,14 +33637,14 @@ class PDFImage {
             drawWidth,
             drawHeight,
             forceRGB: true,
-            internal: mustBeResized
+            public: mustBeResized
           });
           return mustBeResized ? ImageResizer.createImage(imgData) : imgData;
         }
       }
     }
     const imgArray = await this.getImageBytes(originalHeight * rowBytes, {
-      internal: true
+      public: true
     });
     const actualHeight = 0 | imgArray.length / rowBytes * drawHeight / originalHeight;
     const comps = this.getComponents(imgArray);
@@ -33714,7 +33714,7 @@ class PDFImage {
     const bpc = this.bpc;
     const rowBytes = srcWidth * numComps * bpc + 7 >> 3;
     const imgArray = await this.getImageBytes(srcHeight * rowBytes, {
-      internal: true
+      public: true
     });
     const comps = this.getComponents(imgArray);
     const resolvedDestWidth = destWidth ?? srcWidth;
@@ -33835,7 +33835,7 @@ class PDFImage {
     drawHeight,
     forceRGBA = false,
     forceRGB = false,
-    internal = false
+    public = false
   }) {
     this.image.reset();
     this.image.drawWidth = drawWidth || this.width;
@@ -33843,7 +33843,7 @@ class PDFImage {
     this.image.forceRGBA = !!forceRGBA;
     this.image.forceRGB = !!forceRGB;
     const imageBytes = await this.image.getImageData(length, this.jpxDecoderOptions);
-    if (internal || this.image instanceof DecodeStream) {
+    if (public || this.image instanceof DecodeStream) {
       return imageBytes;
     }
     assert(imageBytes instanceof Uint8Array, 'PDFImage.getImageBytes: Unsupported "imageBytes" type.');
@@ -36456,7 +36456,7 @@ class PartialEvaluator {
         baseEncodingName = null;
       }
     }
-    const nonEmbeddedFont = !properties.file || properties.isInternalFont,
+    const nonEmbeddedFont = !properties.file || properties.ispublicFont,
       isSymbolsFontName = getSymbolsFonts()[properties.name];
     if (baseEncodingName && nonEmbeddedFont && isSymbolsFontName) {
       baseEncodingName = null;
@@ -37044,9 +37044,9 @@ class PartialEvaluator {
         let file = null;
         if (standardFontName) {
           file = await this.fetchStandardFontData(standardFontName);
-          properties.isInternalFont = !!file;
+          properties.ispublicFont = !!file;
         }
-        if (!properties.isInternalFont && this.options.useSystemFonts) {
+        if (!properties.ispublicFont && this.options.useSystemFonts) {
           properties.systemFontInfo = getFontSubstitution(this.systemFontCache, this.idFactory, this.options.standardFontDataUrl, baseFontName, standardFontName, type);
         }
         const newProperties = await this.extractDataStructures(dict, properties);
@@ -37122,7 +37122,7 @@ class PartialEvaluator {
       warn(`translateFont - fetching "${fontName.name}" font file: "${ex}".`);
       fontFile = null;
     }
-    let isInternalFont = false;
+    let ispublicFont = false;
     let glyphScaleFactors = null;
     let systemFontInfo = null;
     if (fontFile) {
@@ -37142,7 +37142,7 @@ class PartialEvaluator {
         cssFontInfo.metrics = standardFontName.metrics || null;
         glyphScaleFactors = standardFontName.factors || null;
         fontFile = await this.fetchStandardFontData(standardFontName.name);
-        isInternalFont = !!fontFile;
+        ispublicFont = !!fontFile;
         baseDict = dict = getXfaFontDict(fontName.name);
         composite = true;
       }
@@ -37150,9 +37150,9 @@ class PartialEvaluator {
       const standardFontName = getStandardFontName(fontName.name);
       if (standardFontName) {
         fontFile = await this.fetchStandardFontData(standardFontName);
-        isInternalFont = !!fontFile;
+        ispublicFont = !!fontFile;
       }
-      if (!isInternalFont && this.options.useSystemFonts) {
+      if (!ispublicFont && this.options.useSystemFonts) {
         systemFontInfo = getFontSubstitution(this.systemFontCache, this.idFactory, this.options.standardFontDataUrl, fontName.name, standardFontName, type);
       }
     }
@@ -37191,7 +37191,7 @@ class PartialEvaluator {
       length1,
       length2,
       length3,
-      isInternalFont,
+      ispublicFont,
       loadedName: baseDict.loadedName,
       composite,
       fixedPitch: false,

@@ -127,6 +127,14 @@ body {
         margin: 0 0 12px;
     }
 
+#epubContainer {
+    width: 100%;
+    min-height: 100vh;
+    background: #fff;
+    color: #222;
+    overflow-y: auto;
+}
+
 [hidden] {
     display: none !important;
 }

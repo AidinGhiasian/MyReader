@@ -1,55 +1,160 @@
 ﻿
-@page
-@model IndexModel
-@{
-    Layout = null;
-    ViewData["Title"] = "MyReader";
+import {
+    getDocument,
+    GlobalWorkerOptions
+} from "/lib/pdfjs/build/pdf.mjs";
+
+GlobalWorkerOptions.workerSrc =
+    "/lib/pdfjs/build/pdf.worker.mjs";
+
+const uploadForm = document.getElementById("uploadForm");
+const fileInput = document.getElementById("fileInput");
+
+const uploadSection = document.getElementById("uploadSection");
+const readingSection = document.getElementById("readingSection");
+
+const pagesContainer = document.getElementById("pagesContainer");
+const textContainer = document.getElementById("textContainer");
+const docxContainer = document.getElementById("docxContainer");
+const epubContainer = document.getElementById("epubContainer");
+
+uploadForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+
+    const file = fileInput.files[0];
+
+    if (!file) return;
+
+    uploadSection.hidden = true;
+    readingSection.hidden = false;
+
+    pagesContainer.replaceChildren();
+    textContainer.textContent = "";
+    docxContainer.replaceChildren();
+    epubContainer.replaceChildren();
+
+    pagesContainer.hidden = true;
+    textContainer.hidden = true;
+    docxContainer.hidden = true;
+    epubContainer.hidden = true;
+
+    try {
+        const extension = file.name.split(".").pop().toLowerCase();
+
+        if (extension === "pdf") {
+            await openPdf(file);
+        }
+        else if (extension === "txt") {
+            await openText(file);
+        }
+        else if (extension === "docx") {
+            await openDocx(file);
+        }
+        else if (extension === "epub") {
+            await openEpub(file);
+        }
+        else {
+            throw new Error("Unsupported file format.");
+        }
+    }
+    catch (error) {
+        console.error(error);
+
+        readingSection.hidden = true;
+        uploadSection.hidden = false;
+
+        alert("Could not open this file.");
+    }
+});
+
+async function openPdf(file) {
+    pagesContainer.hidden = false;
+
+    const data = new Uint8Array(await file.arrayBuffer());
+    const pdf = await getDocument({ data }).promise;
+
+    for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber++) {
+        const page = await pdf.getPage(pageNumber);
+
+        const containerWidth = pagesContainer.clientWidth - 32;
+        const originalViewport = page.getViewport({ scale: 1 });
+
+        const scale = Math.min(
+            containerWidth / originalViewport.width,
+            1.5
+        );
+
+        const viewport = page.getViewport({ scale });
+
+        const canvas = document.createElement("canvas");
+        const context = canvas.getContext("2d");
+
+        canvas.className = "pdf-page";
+        canvas.width = Math.floor(viewport.width);
+        canvas.height = Math.floor(viewport.height);
+
+        pagesContainer.appendChild(canvas);
+
+        await page.render({
+            canvasContext: context,
+            viewport: viewport
+        }).promise;
+    }
 }
 
-< !DOCTYPE html >
-    <html lang="en">
-        <head>
-            <meta charset="utf-8" />
-            <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+async function openText(file) {
+    textContainer.hidden = false;
+    textContainer.textContent = await file.text();
+}
 
-            <title>MyReader</title>
+async function openDocx(file) {
+    if (!window.mammoth || !window.DOMPurify) {
+        throw new Error("DOCX libraries could not be loaded.");
+    }
 
-            <link rel="stylesheet"
-                href="~/css/Reader.css"
-                asp-append-version="true" />
-        </head>
-        <body>
-            <main id="app">
+    docxContainer.hidden = false;
 
-                <section id="uploadSection">
-                    <h1>Welcome to MY Reader :)</h1>
+    const arrayBuffer = await file.arrayBuffer();
 
-                    <form id="uploadForm">
-                        <label for="fileInput">Select a file to upload:</label>
+    const result = await window.mammoth.convertToHtml(
+        { arrayBuffer },
+        {
+            convertImage: window.mammoth.images.imgElement(function (image) {
+                return image.read("base64").then(function (imageBuffer) {
+                    return {
+                        src: "data:" + image.contentType + ";base64," + imageBuffer
+                    };
+                });
+            })
+        }
+    );
 
-                        <input type="file"
-                            id="fileInput"
-                            name="uploadedFile"
-                            accept=".pdf,.txt,.docx"
-                            required />
+    docxContainer.innerHTML = window.DOMPurify.sanitize(result.value, {
+        ADD_DATA_URI_TAGS: ["img"]
+    });
+}
 
-                        <button type="submit">Upload</button>
-                    </form>
-                </section>
 
-                <section id="readingSection" hidden>
-                    <div id="pagesContainer"></div>
+async function openEpub(file) {
+    if (!window.ePub) {
+        throw new Error("EPUB library could not be loaded.");
+    }
 
-                    <pre id="textContainer" hidden></pre>
+    epubContainer.hidden = false;
+    epubContainer.replaceChildren();
 
-                    <article id="docxContainer" hidden></article>
-                </section>
+    const arrayBuffer = await file.arrayBuffer();
 
-            </main>
+    const book = window.ePub(arrayBuffer);
 
-            <script src="~/lib/mammoth/mammoth.browser.min.js"></script>
-            <script src="~/lib/dompurify/purify.min.js"></script>
+    const rendition = book.renderTo(epubContainer, {
+        width: "100%",
+        height: "100%",
+        flow: "scrolled-doc",
+        manager: "continuous",
+        allowScriptedContent: true
+    });
 
-            <script type="module" src="~/js/Reader.js" asp-append-version="true"></script>
-        </body>
-    </html>
+    await rendition.display();
+}
+

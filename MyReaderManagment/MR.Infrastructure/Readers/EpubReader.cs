@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MyReaderManagment.MR.Infrastructure.Services
+namespace MyReaderManagment.MR.Infrastructure.Readers
 {
-    public class IFileReaderService
+    internal class EpubReader
     {
     }
 }

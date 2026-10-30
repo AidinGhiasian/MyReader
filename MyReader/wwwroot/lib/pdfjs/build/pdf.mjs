@@ -50,8 +50,8 @@ const AnnotationMode = {
   ENABLE_FORMS: 2,
   ENABLE_STORAGE: 3
 };
-const AnnotationPrefix = "pdfjs_internal_id_";
-const AnnotationEditorPrefix = "pdfjs_internal_editor_";
+const AnnotationPrefix = "pdfjs_public_id_";
+const AnnotationEditorPrefix = "pdfjs_public_editor_";
 const AnnotationEditorType = {
   DISABLE: -1,
   NONE: 0,
@@ -2093,10 +2093,10 @@ class FloatingToolbar {
   }
 }
 
-;// ./src/shared/internal_evt.js
-const INTERNAL_EVT = "fed9040f-f139-41a7-bcf0-3bcfcca89c08";
-const internalOpt = Object.freeze({
-  internal: INTERNAL_EVT
+;// ./src/shared/public_evt.js
+const public_EVT = "fed9040f-f139-41a7-bcf0-3bcfcca89c08";
+const publicOpt = Object.freeze({
+  public: public_EVT
 });
 
 ;// ./src/display/editor/tools.js
@@ -2690,7 +2690,7 @@ class AnnotationEditorUIManager {
     this._eventBus = eventBus;
     const evtOpts = {
       signal,
-      ...internalOpt
+      ...publicOpt
     };
     eventBus.on("editingaction", this.onEditingAction.bind(this), evtOpts);
     eventBus.on("pagechanging", this.onPageChanging.bind(this), evtOpts);
@@ -2901,7 +2901,7 @@ class AnnotationEditorUIManager {
         resolve();
       }
     };
-    this._eventBus.on("editorsrendered", onEditorsRendered, internalOpt);
+    this._eventBus.on("editorsrendered", onEditorsRendered, publicOpt);
     await promise;
   }
   getSignature(editor) {
@@ -2917,7 +2917,7 @@ class AnnotationEditorUIManager {
     this._eventBus.on("annotationeditormodechanged", callback, {
       once: true,
       signal: this._signal,
-      ...internalOpt
+      ...publicOpt
     });
     this._eventBus.dispatch("showannotationeditorui", {
       source: this,
@@ -14388,7 +14388,7 @@ class Metadata {
 ;// ./src/display/optional_content_config.js
 
 
-const INTERNAL = Symbol("INTERNAL");
+const public = Symbol("public");
 class OptionalContentGroup {
   #isDisplay = false;
   #isPrint = false;
@@ -14425,9 +14425,9 @@ class OptionalContentGroup {
     }
     return true;
   }
-  _setVisible(internal, visible, userSet = false) {
-    if (internal !== INTERNAL) {
-      unreachable("Internal method `_setVisible` called.");
+  _setVisible(public, visible, userSet = false) {
+    if (public !== public) {
+      unreachable("public method `_setVisible` called.");
     }
     this.#userSet = userSet;
     this.#visible = visible;
@@ -14464,19 +14464,19 @@ class OptionalContentConfig {
         unreachable("Incorrect serialized groupState.");
       }
       for (const [id, group] of groupState) {
-        this.#groups.get(id)._setVisible(INTERNAL, group.visible, group.userSet);
+        this.#groups.get(id)._setVisible(public, group.visible, group.userSet);
       }
     } else {
       if (data.baseState === "OFF") {
         for (const group of this.#groups.values()) {
-          group._setVisible(INTERNAL, false);
+          group._setVisible(public, false);
         }
       }
       for (const on of data.on) {
-        this.#groups.get(on)._setVisible(INTERNAL, true);
+        this.#groups.get(on)._setVisible(public, true);
       }
       for (const off of data.off) {
-        this.#groups.get(off)._setVisible(INTERNAL, false);
+        this.#groups.get(off)._setVisible(public, false);
       }
     }
     this.#initialHash = this.getHash();
@@ -14596,12 +14596,12 @@ class OptionalContentConfig {
       for (const rbGroup of group.rbGroups) {
         for (const otherId of rbGroup) {
           if (otherId !== id) {
-            this.#groups.get(otherId)?._setVisible(INTERNAL, false, true);
+            this.#groups.get(otherId)?._setVisible(public, false, true);
           }
         }
       }
     }
-    group._setVisible(INTERNAL, !!visible, true);
+    group._setVisible(public, !!visible, true);
     this.#cachedGetHash = null;
   }
   setOCGState({
@@ -15872,31 +15872,31 @@ class PDFPageProxy {
     const shouldRecordOperations = !!canvas && !this.recordedBBoxes && (recordOperations || recordForDebugger);
     const shouldRecordImages = !!canvas && !this.imageCoordinates && recordImages;
     const complete = error => {
-      intentState.renderTasks.delete(internalRenderTask);
+      intentState.renderTasks.delete(publicRenderTask);
       if (shouldRecordOperations) {
-        const recordedBBoxes = internalRenderTask.gfx?.dependencyTracker.take();
+        const recordedBBoxes = publicRenderTask.gfx?.dependencyTracker.take();
         if (recordedBBoxes) {
-          internalRenderTask.stepper?.setOperatorBBoxes(recordedBBoxes, internalRenderTask.gfx.dependencyTracker.takeDebugMetadata());
+          publicRenderTask.stepper?.setOperatorBBoxes(recordedBBoxes, publicRenderTask.gfx.dependencyTracker.takeDebugMetadata());
           if (recordOperations) {
             this.recordedBBoxes = recordedBBoxes;
           }
         }
       }
       if (shouldRecordImages && !error) {
-        this.imageCoordinates = internalRenderTask.gfx?.imagesTracker.take();
+        this.imageCoordinates = publicRenderTask.gfx?.imagesTracker.take();
       }
       if (intentPrint) {
         this.#pendingCleanup = true;
       }
       this.#tryCleanup();
       if (error) {
-        internalRenderTask.capability.reject(error);
+        publicRenderTask.capability.reject(error);
         this._abortOperatorList({
           intentState,
           reason: error instanceof Error ? error : new Error(error)
         });
       } else {
-        internalRenderTask.capability.resolve();
+        publicRenderTask.capability.resolve();
       }
       if (this._stats) {
         this._stats.timeEnd("Rendering");
@@ -15914,7 +15914,7 @@ class PDFPageProxy {
     if (shouldRecordOperations) {
       dependencyTracker = new CanvasDependencyTracker(bboxTracker, recordForDebugger);
     }
-    const internalRenderTask = new InternalRenderTask({
+    const publicRenderTask = new publicRenderTask({
       callback: complete,
       params: {
         canvas,
@@ -15938,8 +15938,8 @@ class PDFPageProxy {
       enableHWA: this._transport.enableHWA,
       operationsFilter
     });
-    (intentState.renderTasks ||= new Set()).add(internalRenderTask);
-    const renderTask = internalRenderTask.task;
+    (intentState.renderTasks ||= new Set()).add(publicRenderTask);
+    const renderTask = publicRenderTask.task;
     Promise.all([intentState.displayReadyCapability.promise, optionalContentConfigPromise]).then(([transparency, optionalContentConfig]) => {
       if (this.destroyed) {
         complete();
@@ -15949,11 +15949,11 @@ class PDFPageProxy {
       if (!(optionalContentConfig.renderingIntent & renderingIntent)) {
         throw new Error("Must use the same `intent`-argument when calling the `PDFPageProxy.render` " + "and `PDFDocumentProxy.getOptionalContentConfig` methods.");
       }
-      internalRenderTask.initializeGraphics({
+      publicRenderTask.initializeGraphics({
         transparency,
         optionalContentConfig
       });
-      internalRenderTask.operatorListChanged();
+      publicRenderTask.operatorListChanged();
     }).catch(complete);
     return renderTask;
   }
@@ -16035,9 +16035,9 @@ class PDFPageProxy {
       if (intentState.opListReadCapability) {
         continue;
       }
-      for (const internalRenderTask of intentState.renderTasks) {
-        waitOn.push(internalRenderTask.completed);
-        internalRenderTask.cancel();
+      for (const publicRenderTask of intentState.renderTasks) {
+        waitOn.push(publicRenderTask.completed);
+        publicRenderTask.cancel();
       }
     }
     this.objs.clear();
@@ -16084,8 +16084,8 @@ class PDFPageProxy {
     }
     intentState.operatorList.lastChunk = operatorListChunk.lastChunk;
     intentState.operatorList.separateAnnots = operatorListChunk.separateAnnots;
-    for (const internalRenderTask of intentState.renderTasks) {
-      internalRenderTask.operatorListChanged();
+    for (const publicRenderTask of intentState.renderTasks) {
+      publicRenderTask.operatorListChanged();
     }
     if (operatorListChunk.lastChunk) {
       this.#tryCleanup();
@@ -16134,8 +16134,8 @@ class PDFPageProxy {
         }
         if (intentState.operatorList) {
           intentState.operatorList.lastChunk = true;
-          for (const internalRenderTask of intentState.renderTasks) {
-            internalRenderTask.operatorListChanged();
+          for (const publicRenderTask of intentState.renderTasks) {
+            publicRenderTask.operatorListChanged();
           }
           this.#tryCleanup();
         }
@@ -16982,35 +16982,35 @@ class WorkerTransport {
   }
 }
 class RenderTask {
-  _internalRenderTask = null;
+  _publicRenderTask = null;
   onContinue = null;
   onError = null;
-  constructor(internalRenderTask) {
-    this._internalRenderTask = internalRenderTask;
+  constructor(publicRenderTask) {
+    this._publicRenderTask = publicRenderTask;
   }
   get promise() {
-    return this._internalRenderTask.capability.promise;
+    return this._publicRenderTask.capability.promise;
   }
   cancel(extraDelay = 0) {
-    this._internalRenderTask.cancel(null, extraDelay);
+    this._publicRenderTask.cancel(null, extraDelay);
   }
   get separateAnnots() {
     const {
       separateAnnots
-    } = this._internalRenderTask.operatorList;
+    } = this._publicRenderTask.operatorList;
     if (!separateAnnots) {
       return false;
     }
     const {
       annotationCanvasMap
-    } = this._internalRenderTask;
+    } = this._publicRenderTask;
     return separateAnnots.form || separateAnnots.canvas && annotationCanvasMap?.size > 0;
   }
   get imageCoordinates() {
-    return this._internalRenderTask.imageCoordinates || null;
+    return this._publicRenderTask.imageCoordinates || null;
   }
 }
-class InternalRenderTask {
+class publicRenderTask {
   #rAF = null;
   static #canvasInUse = new WeakSet();
   constructor({
@@ -17070,10 +17070,10 @@ class InternalRenderTask {
       return;
     }
     if (this._canvas) {
-      if (InternalRenderTask.#canvasInUse.has(this._canvas)) {
+      if (publicRenderTask.#canvasInUse.has(this._canvas)) {
         throw new Error("Cannot use the same canvas during multiple render() operations. " + "Use different canvas or ensure previous operations were " + "cancelled or completed.");
       }
-      InternalRenderTask.#canvasInUse.add(this._canvas);
+      publicRenderTask.#canvasInUse.add(this._canvas);
     }
     if (this._pdfBug && globalThis.StepperManager?.enabled) {
       this.stepper = globalThis.StepperManager.create(this._pageIndex);
@@ -17112,7 +17112,7 @@ class InternalRenderTask {
       window.cancelAnimationFrame(this.#rAF);
       this.#rAF = null;
     }
-    InternalRenderTask.#canvasInUse.delete(this._canvas);
+    publicRenderTask.#canvasInUse.delete(this._canvas);
     error ||= new RenderingCancelledException(`Rendering cancelled, page ${this._pageIndex + 1}`, extraDelay);
     this.callback(error);
     this.task.onError?.(error);
@@ -17159,7 +17159,7 @@ class InternalRenderTask {
       this.running = false;
       if (this.operatorList.lastChunk) {
         this.gfx.endDrawing();
-        InternalRenderTask.#canvasInUse.delete(this._canvas);
+        publicRenderTask.#canvasInUse.delete(this._canvas);
         this.callback();
       }
     }
@@ -18412,8 +18412,8 @@ class LinkAnnotationElement extends AnnotationElement {
     }
     return this.container;
   }
-  #setInternalLink() {
-    this.container.setAttribute("data-internal-link", "");
+  #setpublicLink() {
+    this.container.setAttribute("data-public-link", "");
   }
   _bindLink(link, destination, overlaidText = "") {
     link.href = this.linkService.getDestinationHash(destination);
@@ -18424,7 +18424,7 @@ class LinkAnnotationElement extends AnnotationElement {
       return false;
     };
     if (destination || destination === "") {
-      this.#setInternalLink();
+      this.#setpublicLink();
     }
     if (overlaidText) {
       link.title = overlaidText;
@@ -18439,7 +18439,7 @@ class LinkAnnotationElement extends AnnotationElement {
     if (overlaidText) {
       link.title = overlaidText;
     }
-    this.#setInternalLink();
+    this.#setpublicLink();
   }
   #bindAttachment(link, attachmentId, attachment, overlaidText = "", dest = null) {
     link.href = this.linkService.getAnchorUrl("");
@@ -18458,7 +18458,7 @@ class LinkAnnotationElement extends AnnotationElement {
       openAttachment();
       return false;
     };
-    this.#setInternalLink();
+    this.#setpublicLink();
   }
   #bindSetOCGState(link, action, overlaidText = "") {
     link.href = this.linkService.getAnchorUrl("");
@@ -18469,7 +18469,7 @@ class LinkAnnotationElement extends AnnotationElement {
     if (overlaidText) {
       link.title = overlaidText;
     }
-    this.#setInternalLink();
+    this.#setpublicLink();
   }
   _bindJSAction(link, {
     actions,
@@ -18498,14 +18498,14 @@ class LinkAnnotationElement extends AnnotationElement {
       link.title = overlaidText;
     }
     link.onclick ||= () => false;
-    this.#setInternalLink();
+    this.#setpublicLink();
   }
   _bindResetFormAction(link, resetForm) {
     const otherClickAction = link.onclick;
     if (!otherClickAction) {
       link.href = this.linkService.getAnchorUrl("");
     }
-    this.#setInternalLink();
+    this.#setpublicLink();
     if (!this._fieldObjects) {
       warn(`_bindResetFormAction - "resetForm" action not supported, ` + "ensure that the `fieldObjects` parameter is provided.");
       if (!otherClickAction) {
@@ -21204,7 +21204,7 @@ class FreeTextEditor extends AnnotationEditor {
   #fontSize;
   _colorPicker = null;
   static _freeTextDefaultContent = "";
-  static _internalPadding = 0;
+  static _publicPadding = 0;
   static _defaultColor = null;
   static _defaultFontSize = 10;
   static get _keyboardManager() {
@@ -21257,7 +21257,7 @@ class FreeTextEditor extends AnnotationEditor {
   static initialize(l10n, uiManager) {
     AnnotationEditor.initialize(l10n, uiManager);
     const style = getComputedStyle(document.documentElement);
-    this._internalPadding = parseFloat(style.getPropertyValue("--freetext-padding"));
+    this._publicPadding = parseFloat(style.getPropertyValue("--freetext-padding"));
   }
   static updateDefaultParams(type, value) {
     switch (type) {
@@ -21336,7 +21336,7 @@ class FreeTextEditor extends AnnotationEditor {
   }
   getInitialTranslation() {
     const scale = this.parentScale;
-    return [-FreeTextEditor._internalPadding * scale, -(FreeTextEditor._internalPadding + this.#fontSize) * scale];
+    return [-FreeTextEditor._publicPadding * scale, -(FreeTextEditor._publicPadding + this.#fontSize) * scale];
   }
   rebuild() {
     if (!this.parent) {
@@ -21548,7 +21548,7 @@ class FreeTextEditor extends AnnotationEditor {
     }
     super.render();
     this.editorDiv = document.createElement("div");
-    this.editorDiv.className = "internal";
+    this.editorDiv.className = "public";
     this.editorDiv.setAttribute("id", this.#editorDivId);
     this.editorDiv.setAttribute("data-l10n-id", "pdfjs-free-text2");
     this.editorDiv.setAttribute("data-l10n-attrs", "default-content");
@@ -21708,7 +21708,7 @@ class FreeTextEditor extends AnnotationEditor {
     return this.editorDiv;
   }
   getPDFRect() {
-    const padding = FreeTextEditor._internalPadding * this.parentScale;
+    const padding = FreeTextEditor._publicPadding * this.parentScale;
     return this.getRect(padding, padding);
   }
   static async deserialize(data, parent, uiManager) {
@@ -21874,7 +21874,7 @@ class DrawingOptions {
   }
 }
 class DrawingEditor extends AnnotationEditor {
-  #internalDiv = null;
+  #publicDiv = null;
   #mustBeCommitted;
   _clipPathId = null;
   _colorPicker = null;
@@ -22241,8 +22241,8 @@ class DrawingEditor extends AnnotationEditor {
     }
     this._drawingOptions.updateAll();
     this._drawId = this.#createDrawing(this._drawOutlines, parent);
-    if (this._clipPathId && this.#internalDiv) {
-      this.#internalDiv.style.clipPath = this._clipPathId;
+    if (this._clipPathId && this.#publicDiv) {
+      this.#publicDiv.style.clipPath = this._clipPathId;
     }
   }
   #convertToParentSpace([x, y, width, height]) {
@@ -22397,10 +22397,10 @@ class DrawingEditor extends AnnotationEditor {
     if (this.constructor._hasDrawClass) {
       div.classList.add("draw");
     }
-    const drawDiv = this.#internalDiv = document.createElement("div");
+    const drawDiv = this.#publicDiv = document.createElement("div");
     div.append(drawDiv);
     drawDiv.setAttribute("aria-hidden", "true");
-    drawDiv.className = "internal";
+    drawDiv.className = "public";
     if (this._clipPathId) {
       drawDiv.style.clipPath = this._clipPathId;
     }

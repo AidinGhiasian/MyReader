@@ -3897,7 +3897,7 @@
   touch-action: none;
 }
 
-.annotationEditorLayer .freeTextEditor .internal {
+.annotationEditorLayer .freeTextEditor .public {
   background: transparent;
   border: none;
   inset: 0;
@@ -3924,12 +3924,12 @@
   display: block;
 }
 
-.annotationEditorLayer .freeTextEditor .internal:empty::before {
+.annotationEditorLayer .freeTextEditor .public:empty::before {
   content: attr(default-content);
   color: gray;
 }
 
-.annotationEditorLayer .freeTextEditor .internal:focus {
+.annotationEditorLayer .freeTextEditor .public:focus {
   outline: none;
   -webkit-user-select: auto;
      -moz-user-select: auto;
@@ -4531,7 +4531,7 @@
       transform: none;
     }
 
-    .internal {
+    .public {
       position: absolute;
       top: 0;
       left: 0;
@@ -4540,12 +4540,12 @@
       pointer-events: auto;
     }
 
-    &.disabled .internal {
+    &.disabled .public {
       pointer-events: none;
     }
 
     &.selectedEditor {
-      .internal {
+      .public {
         cursor: pointer;
       }
     }
@@ -7023,7 +7023,7 @@ body {
 }
 
 .pdfPresentationMode:fullscreen
-  section:not([data-internal-link], .mediaAnnotation) {
+  section:not([data-public-link], .mediaAnnotation) {
   pointer-events: none;
 }
 

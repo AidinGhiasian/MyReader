@@ -936,10 +936,10 @@ const {
   XfaLayer
 } = globalThis.pdfjsLib;
 
-;// ./web/internal_evt.js
-const INTERNAL_EVT = "fed9040f-f139-41a7-bcf0-3bcfcca89c08";
-const internalOpt = Object.freeze({
-  internal: INTERNAL_EVT
+;// ./web/public_evt.js
+const public_EVT = "fed9040f-f139-41a7-bcf0-3bcfcca89c08";
+const publicOpt = Object.freeze({
+  public: public_EVT
 });
 
 ;// ./web/pdf_link_service.js
@@ -1058,7 +1058,7 @@ class PDFLinkService {
       }
     }, {
       signal: ac.signal,
-      ...internalOpt
+      ...publicOpt
     });
   }
   goToPage(val) {
@@ -1309,7 +1309,7 @@ async function waitOnEventOrTimeout({
   const evtMethod = target instanceof EventBus ? "on" : "addEventListener";
   const evtOpts = target instanceof EventBus ? {
     signal: ac.signal,
-    ...internalOpt
+    ...publicOpt
   } : {
     signal: ac.signal
   };
@@ -1338,7 +1338,7 @@ class EventBus {
     }
     this.#listeners.getOrInsertComputed(eventName, makeSet).add({
       listener,
-      internal: options?.internal === INTERNAL_EVT,
+      public: options?.public === public_EVT,
       once: options?.once === true,
       rmAbort
     });
@@ -1359,13 +1359,13 @@ class EventBus {
     let extListeners;
     for (const {
       listener,
-      internal,
+      public,
       once
     } of new Set(eventListeners)) {
       if (once) {
         this.off(eventName, listener);
       }
-      if (!internal) {
+      if (!public) {
         (extListeners ??= []).push(listener);
         continue;
       }
@@ -3314,7 +3314,7 @@ class NewAltTextManager {
       value
     }) => {
       this.#toggleGuessAltText(value, false);
-    }, internalOpt);
+    }, publicOpt);
     this.#overlayManager.register(dialog);
     this.#learnMore.addEventListener("click", () => {
       this.#currentEditor._reportTelemetry({
@@ -3463,7 +3463,7 @@ class NewAltTextManager {
       mlManager.toggleService("altText", true);
       this.#toggleGuessAltText(await mlManager.isEnabledFor("altText"), true);
     };
-    this.#eventBus.on("loadaiengineprogress", callback, internalOpt);
+    this.#eventBus.on("loadaiengineprogress", callback, publicOpt);
   }
   async editAltText(uiManager, editor, firstTime) {
     if (this.#currentEditor || !editor) {
@@ -3679,7 +3679,7 @@ class ImageAltTextSettings {
       } else {
         this.#delete(false);
       }
-    }, internalOpt);
+    }, publicOpt);
     this.#overlayManager.register(dialog);
   }
   #reportTelemetry(data) {
@@ -3858,7 +3858,7 @@ class AltTextManager {
     this.#resizeAC = new AbortController();
     this.#eventBus.on("resize", this.#setPosition.bind(this), {
       signal: this.#resizeAC.signal,
-      ...internalOpt
+      ...publicOpt
     });
     try {
       await this.#overlayManager.open(this.#dialog);
@@ -4139,7 +4139,7 @@ class AnnotationEditorParams {
             break;
         }
       }
-    }, internalOpt);
+    }, publicOpt);
   }
 }
 
@@ -5602,7 +5602,7 @@ class EditorUndoBar {
       };
       const evtOpts = {
         signal: this.#initController.signal,
-        ...internalOpt
+        ...publicOpt
       };
       const boundHide = this.hide.bind(this);
       this.#container.addEventListener("contextmenu", noContextMenu, domOpts);
@@ -5894,7 +5894,7 @@ class PDFAttachmentViewer extends BaseTreeViewer {
     super(options);
     this.downloadManager = options.downloadManager;
     this.linkService = options.linkService;
-    this.eventBus.on("fileattachmentannotation", this.#appendAttachment.bind(this), internalOpt);
+    this.eventBus.on("fileattachmentannotation", this.#appendAttachment.bind(this), publicOpt);
   }
   reset(keepRenderedCapability = false) {
     super.reset();
@@ -6171,7 +6171,7 @@ class PDFCursorTools {
         presentationModeState = PresentationModeState.NORMAL;
         enableActive();
       }
-    }, internalOpt);
+    }, publicOpt);
     let annotationEditorMode = AnnotationEditorType.NONE,
       presentationModeState = PresentationModeState.NORMAL;
     const disableActive = () => {
@@ -6193,7 +6193,7 @@ class PDFCursorTools {
       } else {
         disableActive();
       }
-    }, internalOpt);
+    }, publicOpt);
     eventBus.on("presentationmodechanged", ({
       state
     }) => {
@@ -6203,7 +6203,7 @@ class PDFCursorTools {
       } else if (state === PresentationModeState.FULLSCREEN) {
         disableActive();
       }
-    }, internalOpt);
+    }, publicOpt);
   }
   get _handTool() {
     return shadow(this, "_handTool", new GrabToPan({
@@ -6248,10 +6248,10 @@ class PDFDocumentProperties {
     this.overlayManager.register(this.dialog);
     eventBus.on("pagechanging", evt => {
       this._currentPageNumber = evt.pageNumber;
-    }, internalOpt);
+    }, publicOpt);
     eventBus.on("rotationchanging", evt => {
       this._pagesRotation = evt.pagesRotation;
-    }, internalOpt);
+    }, publicOpt);
   }
   async open() {
     await Promise.all([this.overlayManager.open(this.dialog), this._dataAvailableCapability.promise]);
@@ -6712,9 +6712,9 @@ class PDFFindController {
     this.#delay = delay;
     this.onIsPageVisible = null;
     this.#reset();
-    eventBus.on("find", this.#onFind.bind(this), internalOpt);
-    eventBus.on("findbarclose", this.#onFindBarClose.bind(this), internalOpt);
-    eventBus.on("pagesedited", this.#onPagesEdited.bind(this), internalOpt);
+    eventBus.on("find", this.#onFind.bind(this), publicOpt);
+    eventBus.on("findbarclose", this.#onFindBarClose.bind(this), publicOpt);
+    eventBus.on("pagesedited", this.#onPagesEdited.bind(this), publicOpt);
   }
   get highlightMatches() {
     return this._highlightMatches;
@@ -7515,9 +7515,9 @@ class PDFHistory {
         this._isPagesLoaded = !!evt.pagesCount;
       }, {
         once: true,
-        ...internalOpt
+        ...publicOpt
       });
-    }, internalOpt);
+    }, publicOpt);
   }
   initialize({
     fingerprint,
@@ -7562,7 +7562,7 @@ class PDFHistory {
       return;
     }
     const destination = state.destination;
-    this.#updateInternalState(destination, state.uid, true);
+    this.#updatepublicState(destination, state.uid, true);
     if (destination.rotation !== undefined) {
       this._initialRotation = destination.rotation;
     }
@@ -7702,7 +7702,7 @@ class PDFHistory {
       uid: shouldReplace ? this._uid : this._uid + 1,
       destination
     };
-    this.#updateInternalState(destination, newState.uid);
+    this.#updatepublicState(destination, newState.uid);
     let newUrl;
     if (this._updateUrl && destination?.hash) {
       const {
@@ -7776,7 +7776,7 @@ class PDFHistory {
     }
     return true;
   }
-  #updateInternalState(destination, uid, removeTemporary = false) {
+  #updatepublicState(destination, uid, removeTemporary = false) {
     if (this._updateViewareaTimeout) {
       clearTimeout(this._updateViewareaTimeout);
       this._updateViewareaTimeout = null;
@@ -7866,7 +7866,7 @@ class PDFHistory {
       });
     }
     const destination = state.destination;
-    this.#updateInternalState(destination, state.uid, true);
+    this.#updatepublicState(destination, state.uid, true);
     if (isValidRotation(destination.rotation)) {
       this.linkService.rotation = destination.rotation;
     }
@@ -7896,7 +7896,7 @@ class PDFHistory {
     } = this.#eventAC;
     this.eventBus.on("updateviewarea", this.#updateViewarea.bind(this), {
       signal,
-      ...internalOpt
+      ...publicOpt
     });
     window.addEventListener("popstate", this.#popState.bind(this), {
       signal
@@ -7966,11 +7966,11 @@ class PDFLayerViewer extends BaseTreeViewer {
     } = this;
     eventBus.on("optionalcontentconfigchanged", evt => {
       this.#updateLayers(evt.promise);
-    }, internalOpt);
+    }, publicOpt);
     eventBus.on("resetlayers", () => {
       this.#updateLayers();
-    }, internalOpt);
-    eventBus.on("togglelayerstree", this._toggleAllTreeItems.bind(this), internalOpt);
+    }, publicOpt);
+    eventBus.on("togglelayerstree", this._toggleAllTreeItems.bind(this), publicOpt);
   }
   reset() {
     super.reset();
@@ -8140,18 +8140,18 @@ class PDFOutlineViewer extends BaseTreeViewer {
     const {
       eventBus
     } = this;
-    eventBus.on("toggleoutlinetree", this._toggleAllTreeItems.bind(this), internalOpt);
-    eventBus.on("currentoutlineitem", this._currentOutlineItem.bind(this), internalOpt);
+    eventBus.on("toggleoutlinetree", this._toggleAllTreeItems.bind(this), publicOpt);
+    eventBus.on("currentoutlineitem", this._currentOutlineItem.bind(this), publicOpt);
     eventBus.on("pagechanging", evt => {
       this._currentPageNumber = evt.pageNumber;
-    }, internalOpt);
+    }, publicOpt);
     eventBus.on("pagesloaded", evt => {
       this._isPagesLoaded = !!evt.pagesCount;
       this._currentOutlineItemCapability?.resolve(this._isPagesLoaded);
-    }, internalOpt);
+    }, publicOpt);
     eventBus.on("sidebarviewchanged", evt => {
       this._sidebarView = evt.view;
-    }, internalOpt);
+    }, publicOpt);
   }
   reset() {
     super.reset();
@@ -8552,7 +8552,7 @@ class PDFPresentationMode {
     if (evt.button !== 0) {
       return;
     }
-    if (evt.target.href && evt.target.parentNode?.hasAttribute("data-internal-link")) {
+    if (evt.target.href && evt.target.parentNode?.hasAttribute("data-public-link")) {
       return;
     }
     if (evt.target.closest?.(".mediaAnnotation")) {
@@ -9271,7 +9271,7 @@ class PDFScriptingManager {
     this.#eventAC = new AbortController();
     const evtOpts = {
       signal: this.#eventAC.signal,
-      ...internalOpt
+      ...publicOpt
     };
     eventBus.on("updatefromsandbox", event => {
       if (event?.source === window) {
@@ -9578,7 +9578,7 @@ class PDFScriptingManager {
 }
 
 ;// ./web/pdf_text_extractor.js
-/* unused harmony import specifier */ var pdf_text_extractor_internalOpt;
+/* unused harmony import specifier */ var pdf_text_extractor_publicOpt;
 
 class PdfTextExtractor {
   #externalServices;
@@ -9588,12 +9588,12 @@ class PdfTextExtractor {
     this.#externalServices = externalServices;
     eventBus.on("pagesinit", () => {
       this.#capability.resolve(pdfViewer);
-    }, pdf_text_extractor_internalOpt);
+    }, pdf_text_extractor_publicOpt);
     eventBus.on("pagesdestroy", () => {
       this.#capability.reject(new Error("pagesdestroy"));
       this.#textPromise = null;
       this.#capability = Promise.withResolvers();
-    }, pdf_text_extractor_internalOpt);
+    }, pdf_text_extractor_publicOpt);
     window.addEventListener("requestTextContent", ({
       detail
     }) => {
@@ -10312,7 +10312,7 @@ class PDFThumbnailViewer {
         menuButton.disabled = false;
       }, {
         once: true,
-        ...internalOpt
+        ...publicOpt
       });
       this._manageMenu = new Menu(menu, menuButton, [copy, cut, del, exportSelected]);
       this.#manageExportButton = exportSelected;
@@ -10342,7 +10342,7 @@ class PDFThumbnailViewer {
             this.#saveExtractedPages();
             break;
         }
-      }, internalOpt);
+      }, publicOpt);
       this.container.addEventListener("contextmenu", e => {
         eventBus.dispatch("editingstateschanged", {
           source: this,
@@ -10449,7 +10449,7 @@ class PDFThumbnailViewer {
       }
     }, {
       once: true,
-      ...internalOpt
+      ...publicOpt
     });
     this.#reportTelemetry({
       action: "merge"
@@ -11263,7 +11263,7 @@ class PDFThumbnailViewer {
       if (source.thumbnailsView === this.container) {
         this.#computeThumbnailsPosition();
       }
-    }, internalOpt);
+    }, publicOpt);
     this.container.addEventListener("keydown", e => {
       const {
         target
@@ -11886,7 +11886,7 @@ class AnnotationLayerBuilder {
         this.#updatePresentationModeState(evt.state);
       }, {
         signal: this.#eventAC.signal,
-        ...internalOpt
+        ...publicOpt
       });
     }
   }
@@ -11953,7 +11953,7 @@ class AnnotationLayerBuilder {
         return;
     }
     for (const section of this.div.childNodes) {
-      if (section.hasAttribute("data-internal-link") || section.classList.contains("mediaAnnotation")) {
+      if (section.hasAttribute("data-public-link") || section.classList.contains("mediaAnnotation")) {
         continue;
       }
       section.inert = disableFormElements;
@@ -12685,7 +12685,7 @@ class StructTreeLayerBuilder {
   #elementAttributes = new Map();
   #pendingLinkOwnership = new Map();
   #linkTextId = 0;
-  #structElementIdPrefix = `pdfjs_internal_struct_${getUuid()}_`;
+  #structElementIdPrefix = `pdfjs_public_struct_${getUuid()}_`;
   #structElementIds = new Map();
   #structElements = new Map();
   #rawDims;
@@ -13241,7 +13241,7 @@ class TextHighlighter {
         }
       }, {
         signal: this.#eventAC.signal,
-        ...internalOpt
+        ...publicOpt
       });
     }
     this._updateMatches();
@@ -14709,7 +14709,7 @@ class PDFViewer {
       if (!this.#buffer.has(pageView)) {
         pdfPage?.cleanup();
       }
-    }, internalOpt);
+    }, publicOpt);
     if (!options.l10n) {
       this.l10n.translate(this.container);
     }
@@ -15057,7 +15057,7 @@ class PDFViewer {
     } = this.#eventAC;
     const evtOpts = {
       signal,
-      ...internalOpt
+      ...publicOpt
     };
     if (pagesCount > PagesCountLimit.FORCE_SCROLL_MODE_PAGE) {
       console.warn("Forcing PAGE-scrolling for performance reasons, given the length of the document.");
@@ -15184,7 +15184,7 @@ class PDFViewer {
       }, {
         once: true,
         signal,
-        ...internalOpt
+        ...publicOpt
       });
       this.#onePageRenderedOrForceFetch(signal).then(async () => {
         if (pdfDocument !== this.pdfDocument) {
@@ -16369,7 +16369,7 @@ class PDFViewer {
           }
         }, {
           signal,
-          ...internalOpt
+          ...publicOpt
         });
         return;
       }
@@ -16585,9 +16585,9 @@ class SecondaryToolbar {
         });
       });
     }
-    eventBus.on("cursortoolchanged", this.#cursorToolChanged.bind(this), internalOpt);
-    eventBus.on("scrollmodechanged", this.#scrollModeChanged.bind(this), internalOpt);
-    eventBus.on("spreadmodechanged", this.#spreadModeChanged.bind(this), internalOpt);
+    eventBus.on("cursortoolchanged", this.#cursorToolChanged.bind(this), publicOpt);
+    eventBus.on("scrollmodechanged", this.#scrollModeChanged.bind(this), publicOpt);
+    eventBus.on("spreadmodechanged", this.#spreadModeChanged.bind(this), publicOpt);
   }
   #cursorToolChanged({
     tool,
@@ -16816,7 +16816,7 @@ class SignatureManager {
     });
     this.#initTabButtons(typeButton, drawButton, imageButton, panels);
     imagePicker.accept = SupportedImageMimeTypes.keys().join(",");
-    eventBus.on("storedsignatureschanged", this.#signaturesChanged.bind(this), internalOpt);
+    eventBus.on("storedsignatureschanged", this.#signaturesChanged.bind(this), publicOpt);
     overlayManager.register(dialog);
   }
   #initTabButtons(typeButton, drawButton, imageButton, panels) {
@@ -18281,7 +18281,7 @@ class Toolbar {
       if (pagesCount !== this.pagesCount) {
         this.setPagesCount(pagesCount, this.hasPageLabels);
       }
-    }, internalOpt);
+    }, publicOpt);
     scaleSelect.addEventListener("change", function () {
       if (this.value === "custom") {
         return;
@@ -18299,7 +18299,7 @@ class Toolbar {
       }
     });
     scaleSelect.oncontextmenu = noContextMenu;
-    eventBus.on("annotationeditormodechanged", this.#editorModeChanged.bind(this), internalOpt);
+    eventBus.on("annotationeditormodechanged", this.#editorModeChanged.bind(this), publicOpt);
     eventBus.on("showannotationeditorui", ({
       mode
     }) => {
@@ -18308,8 +18308,8 @@ class Toolbar {
           editorHighlightButton.click();
           break;
       }
-    }, internalOpt);
-    eventBus.on("toolbardensity", this.#updateToolbarDensity.bind(this), internalOpt);
+    }, publicOpt);
+    eventBus.on("toolbardensity", this.#updateToolbarDensity.bind(this), publicOpt);
     if (editorHighlightColorPicker) {
       eventBus.on("annotationeditoruimanager", ({
         uiManager
@@ -18319,12 +18319,12 @@ class Toolbar {
         });
         uiManager.setMainHighlightColorPicker(cp);
         editorHighlightColorPicker.append(cp.renderMainDropdown());
-      }, internalOpt);
+      }, publicOpt);
       eventBus.on("mainhighlightcolorpickerupdatecolor", ({
         value
       }) => {
         this.#colorPicker?.update(value);
-      }, internalOpt);
+      }, publicOpt);
     }
   }
   #editorModeChanged({
@@ -18763,18 +18763,18 @@ class ViewsManager extends Sidebar {
         }
         this.viewsManagerCurrentOutlineButton.disabled = !enabled;
       });
-    }, internalOpt);
+    }, publicOpt);
     eventBus.on("attachmentsloaded", evt => {
       onTreeLoaded(evt.attachmentsCount, this.attachmentsButton, SidebarView.ATTACHMENTS);
-    }, internalOpt);
+    }, publicOpt);
     eventBus.on("layersloaded", evt => {
       onTreeLoaded(evt.layersCount, this.layersButton, SidebarView.LAYERS);
-    }, internalOpt);
+    }, publicOpt);
     eventBus.on("presentationmodechanged", evt => {
       if (evt.state === PresentationModeState.NORMAL && this.visibleView === SidebarView.THUMBS) {
         this.onUpdateThumbnails();
       }
-    }, internalOpt);
+    }, publicOpt);
   }
   onStartResizing() {
     this.outerContainer.classList.add(SIDEBAR_RESIZING_CLASS);
@@ -19334,7 +19334,7 @@ const PDFViewerApplication = {
     } else {
       eventBus.on("printingallowed", ({
         isAllowed
-      }) => togglePrintingButtons(isAllowed), internalOpt);
+      }) => togglePrintingButtons(isAllowed), publicOpt);
     }
     if (!this.supportsFullscreen) {
       appConfig.secondaryToolbar?.presentationModeButton.classList.add("hidden");
@@ -19703,7 +19703,7 @@ const PDFViewerApplication = {
         resolve(isAllowed);
       }, {
         once: true,
-        ...internalOpt
+        ...publicOpt
       });
     });
     pdfDocument.getDownloadInfo().then(({
@@ -19860,7 +19860,7 @@ const PDFViewerApplication = {
       await new Promise(resolve => {
         this.eventBus.on("metadataloaded", resolve, {
           once: true,
-          ...internalOpt
+          ...publicOpt
         });
       });
       if (pdfDocument !== this.pdfDocument) {
@@ -19871,7 +19871,7 @@ const PDFViewerApplication = {
       await new Promise(resolve => {
         this.eventBus.on("documentloaded", resolve, {
           once: true,
-          ...internalOpt
+          ...publicOpt
         });
       });
       if (pdfDocument !== this.pdfDocument) {
@@ -20176,7 +20176,7 @@ const PDFViewerApplication = {
     const ac = this._eventBusAC = new AbortController();
     const opts = {
       signal: ac.signal,
-      ...internalOpt
+      ...publicOpt
     };
     const {
       eventBus,

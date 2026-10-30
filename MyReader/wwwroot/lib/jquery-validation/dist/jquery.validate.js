@@ -694,7 +694,7 @@ $.extend( $.validator, {
 			return $( this.settings.errorElement + "." + errorClass, this.errorContext );
 		},
 
-		resetInternals: function() {
+		resetpublics: function() {
 			this.successList = [];
 			this.errorList = [];
 			this.errorMap = {};
@@ -703,7 +703,7 @@ $.extend( $.validator, {
 		},
 
 		reset: function() {
-			this.resetInternals();
+			this.resetpublics();
 			this.currentElements = $( [] );
 		},
 

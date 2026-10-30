@@ -17,44 +17,36 @@
           href="~/css/Reader.css"
           asp-append-version="true" />
 </head>
-
 <body>
     <main id="app">
-
         <section id="uploadSection">
             <h1>Welcome to MY Reader :)</h1>
 
             <form id="uploadForm">
-                <label for="fileInput">
-                    Select a file to upload:
-                </label>
+                <label for="fileInput">Select a file to upload:</label>
 
                 <input type="file"
                        id="fileInput"
                        name="uploadedFile"
-                       accept=".pdf,.txt,.docx"
+                       accept=".pdf,.txt,.docx,.epub"
                        required />
 
-                <button type="submit">
-                    Upload
-                </button>
+                <button type="submit">Upload</button>
             </form>
         </section>
 
         <section id="readingSection" hidden>
-
             <div id="pagesContainer"></div>
-
             <pre id="textContainer" hidden></pre>
-
             <article id="docxContainer" hidden></article>
-
+            <div id="epubContainer" hidden></div>
         </section>
-
     </main>
 
     <script src="~/lib/mammoth/mammoth.browser.min.js"></script>
     <script src="~/lib/dompurify/purify.min.js"></script>
+    <script src="~/lib/jszip/jszip.min.js"></script>
+    <script src="~/lib/epub/epub.min.js"></script>
 
     <script type="module"
             src="~/js/Reader.js"
