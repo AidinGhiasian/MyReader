@@ -6,7 +6,19 @@ using System.Threading.Tasks;
 
 namespace MR.Domain.Documents
 {
-    public class DocumentType
+    public enum DocumentType
     {
+       Unknoun,
+       Pdf,
+       Txt,
+       Doc,
+       Docx,
+       Rtf,
+       Odt,
+       Epub,
+       Markdown,
+       Html,
+       Csv,
+       Xlsx
     }
 }

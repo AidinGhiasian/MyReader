@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MR.Domain.Documents;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,5 +9,6 @@ namespace MR.Application.Contracts.Readers
 {
     public interface IDocumentReaderFactory
     {
+        IDocumentReader? Create(DocumentType documentType);
     }
 }
