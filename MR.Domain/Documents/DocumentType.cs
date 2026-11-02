@@ -8,7 +8,7 @@ namespace MR.Domain.Documents
 {
     public enum DocumentType
     {
-       Unknoun,
+       Unknown,
        Pdf,
        Txt,
        Doc,

@@ -11,5 +11,7 @@ namespace MR.Application.Contracts.Readers
     public interface IDocumentReader
     {
         DocumentType SupportedType { get; }
+
+        Task<DocumentReadResult>ReadAsync(Stream fileStream,string fileName,CancellationToken cancellationToken=default);
     }
 }

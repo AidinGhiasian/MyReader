@@ -25,8 +25,10 @@ namespace MR.Infrastructure.Readers
                 ".md" => DocumentType.Markdown,
                 ".html" => DocumentType.Html,
                 ".csv" => DocumentType.Csv,
+                ".markdown" => DocumentType.Markdown,
+                ".htm" => DocumentType.Html,
                 ".xlsx" => DocumentType.Xlsx,
-                _ => DocumentType.Unknoun,
+                _ => DocumentType.Unknown,
             };
         }
     }

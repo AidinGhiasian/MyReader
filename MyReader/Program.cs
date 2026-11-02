@@ -1,9 +1,16 @@
-var builder = WebApplication.CreateBuilder(args);
+using MR.Application.Contracts.Readers;
+using MR.Infrastructure.Readers;
+using MyReaderManagment.MR.Application.Readers.Services;
 
+var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddRazorPages();
 
 var app = builder.Build();
+
+
+builder.Services.AddScoped<IDocumentTypeDetector,DocumentTypeDetector>();
+builder.Services.AddScoped<IDocumentReaderFactory, DocumentReaderFactory>();
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
