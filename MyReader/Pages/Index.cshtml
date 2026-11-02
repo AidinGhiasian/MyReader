@@ -4,7 +4,6 @@
     Layout = null;
     ViewData["Title"] = "MyReader";
 }
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -23,6 +22,7 @@
             <h1>Welcome to MY Reader :)</h1>
 
             <form id="uploadForm">
+                @Html.AntiForgeryToken()
                 <label for="fileInput">Select a file to upload:</label>
 
                 <input type="file"

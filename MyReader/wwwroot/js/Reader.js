@@ -39,19 +39,48 @@ uploadForm.addEventListener("submit", async (event) => {
     epubContainer.hidden = true;
 
     try {
+        const formData = new FormData();
+        formData.append("uploadedFile", file);
+
+        const token = document.querySelector(
+            'input[name="__RequestVerificationToken"]'
+        ).value;
+
+        const response = await fetch("/?handler=Read", {
+            method: "POST",
+            body: formData,
+            headers: {
+                "RequestVerificationToken": token
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error(await response.text());
+        }
+
+        const content = await response.arrayBuffer();
+
+        const documentFile = new File(
+            [content],
+            file.name,
+            {
+                type: response.headers.get("Content-Type")
+            }
+        );
+
         const extension = file.name.split(".").pop().toLowerCase();
 
         if (extension === "pdf") {
-            await openPdf(file);
+            await openPdf(documentFile);
         }
         else if (extension === "txt") {
-            await openText(file);
+            await openText(documentFile);
         }
         else if (extension === "docx") {
-            await openDocx(file);
+            await openDocx(documentFile);
         }
         else if (extension === "epub") {
-            await openEpub(file);
+            await openEpub(documentFile);
         }
         else {
             throw new Error("Unsupported file format.");
@@ -134,7 +163,6 @@ async function openDocx(file) {
     });
 }
 
-
 async function openEpub(file) {
     if (!window.ePub) {
         throw new Error("EPUB library could not be loaded.");
@@ -157,4 +185,3 @@ async function openEpub(file) {
 
     await rendition.display();
 }
-

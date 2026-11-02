@@ -1,22 +1,27 @@
 using MR.Application.Contracts.Readers;
 using MR.Infrastructure.Readers;
 using MyReaderManagment.MR.Application.Readers.Services;
+using MyReaderManagment.MR.Infrastructure.Readers;
 
 var builder = WebApplication.CreateBuilder(args);
-// Add services to the container.
+
 builder.Services.AddRazorPages();
+
+// Dependency Injection
+builder.Services.AddScoped<IDocumentTypeDetector, DocumentTypeDetector>();
+builder.Services.AddScoped<IDocumentReaderFactory, DocumentReaderFactory>();
+builder.Services.AddScoped<IDocumentReader, PdfReader>();
+builder.Services.AddScoped<IDocumentReader, MyReaderManagment.MR.Infrastructure.Readers.TextReader>();
+builder.Services.AddScoped<IDocumentReader, WordReader>();
+builder.Services.AddScoped<IDocumentReader, SpreadsheetReader>();
+
+
 
 var app = builder.Build();
 
-
-builder.Services.AddScoped<IDocumentTypeDetector,DocumentTypeDetector>();
-builder.Services.AddScoped<IDocumentReaderFactory, DocumentReaderFactory>();
-
-// Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
 
