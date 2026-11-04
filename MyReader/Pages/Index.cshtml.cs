@@ -8,7 +8,7 @@ namespace MyReader.Pages
 {
     public class IndexModel : PageModel
     {
-        private IDocumentTypeDetector _typeDetector;
+        private readonly IDocumentTypeDetector _typeDetector;
         private readonly IDocumentReaderFactory _readerFactory;
         public IndexModel(IDocumentTypeDetector typeDetector,IDocumentReaderFactory readerFactory)
         {
