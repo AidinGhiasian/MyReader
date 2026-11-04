@@ -2,10 +2,10 @@
 import {
     getDocument,
     GlobalWorkerOptions
-} from "/lib/pdfjs/build/pdf.mjs";
+} from "/lib/pdfjs-dist/build/pdf.mjs";
 
 GlobalWorkerOptions.workerSrc =
-    "/lib/pdfjs/build/pdf.worker.mjs";
+    "/lib/pdfjs-dist/build/pdf.worker.mjs";
 
 const uploadForm = document.getElementById("uploadForm");
 const fileInput = document.getElementById("fileInput");

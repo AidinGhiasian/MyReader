@@ -14,6 +14,7 @@ builder.Services.AddScoped<IDocumentReader, PdfReader>();
 builder.Services.AddScoped<IDocumentReader, MyReaderManagment.MR.Infrastructure.Readers.TextReader>();
 builder.Services.AddScoped<IDocumentReader, WordReader>();
 builder.Services.AddScoped<IDocumentReader, SpreadsheetReader>();
+builder.Services.AddScoped<IDocumentReader,EpubReader>();
 
 
 

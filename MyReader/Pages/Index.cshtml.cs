@@ -18,23 +18,32 @@ namespace MyReader.Pages
         public async Task<IActionResult> OnPostReadAsync(IFormFile? uploadedFile, CancellationToken cancellationToken)
         {
             OperationResult operation = new OperationResult();
+
             if (uploadedFile == null||uploadedFile.Length==0)
             {
                 operation.Failure(ApplicationMessage.NotFound);
                 return RedirectToPage();
             }
+
             string fileName = Path.GetFileName(uploadedFile.Name);
             DocumentType documentType = _typeDetector.Detect(fileName);
+
+
             if (documentType==DocumentType.Unknown)
             {
                 operation.Failure(ApplicationMessage.NotSupported);
                 return RedirectToPage();
             }
+
+
             IDocumentReader? reader = _readerFactory.Create(documentType);
             if (reader==null)
             {
                 operation.Failure(ApplicationMessage.OperationFailed);
+                return RedirectToPage();
             }
+
+
             await using var stream = uploadedFile.OpenReadStream();
             DocumentReadResult result = await reader.ReadAsync(stream,fileName,cancellationToken);
             return File(result.Content, result.ContentType);
