@@ -25,7 +25,7 @@ namespace MyReader.Pages
                 return RedirectToPage();
             }
 
-            string fileName = Path.GetFileName(uploadedFile.Name);
+            string fileName = Path.GetFileName(uploadedFile.FileName);
             DocumentType documentType = _typeDetector.Detect(fileName);
 
 
