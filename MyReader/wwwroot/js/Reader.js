@@ -18,7 +18,13 @@ const textContainer = document.getElementById("textContainer");
 const docxContainer = document.getElementById("docxContainer");
 const epubContainer = document.getElementById("epubContainer");
 
+const epubControls = document.getElementById("epubControls");
+const epubPrev = document.getElementById("epubPrev");
+const epubNext = document.getElementById("epubNext");
+
 const errorMessage = document.getElementById("errorMessage");
+
+let epubRendition = null;
 
 uploadForm.addEventListener("submit", async (event) => {
     event.preventDefault();
@@ -42,6 +48,12 @@ uploadForm.addEventListener("submit", async (event) => {
     textContainer.hidden = true;
     docxContainer.hidden = true;
     epubContainer.hidden = true;
+    epubControls.hidden = true;
+
+    if (epubRendition) {
+        epubRendition.destroy();
+        epubRendition = null;
+    }
 
     try {
         const formData = new FormData();
@@ -143,7 +155,6 @@ async function openText(file) {
     textContainer.textContent = await file.text();
 }
 
-
 async function openDocx(file) {
     if (!window.mammoth || !window.DOMPurify) {
         throw new Error("DOCX libraries could not be loaded.");
@@ -206,26 +217,65 @@ function createDocumentPage() {
     return page;
 }
 
-
 async function openEpub(file) {
     if (!window.ePub) {
         throw new Error("EPUB library could not be loaded.");
     }
 
     epubContainer.hidden = false;
+    epubControls.hidden = false;
     epubContainer.replaceChildren();
 
     const arrayBuffer = await file.arrayBuffer();
 
     const book = window.ePub(arrayBuffer);
 
-    const rendition = book.renderTo(epubContainer, {
+    epubRendition = book.renderTo(epubContainer, {
         width: "100%",
         height: "100%",
-        flow: "scrolled-doc",
-        manager: "continuous",
-        allowScriptedContent: true
+        flow: "paginated",
+        manager: "default",
+        spread: "none",
+        allowScriptedContent: false
     });
 
-    await rendition.display();
+    await epubRendition.display();
 }
+
+epubPrev.addEventListener("click", async () => {
+    if (epubRendition) {
+        await epubRendition.prev();
+    }
+});
+
+epubNext.addEventListener("click", async () => {
+    if (epubRendition) {
+        await epubRendition.next();
+    }
+});
+
+document.addEventListener("keydown", async (event) => {
+    if (!epubRendition || epubContainer.hidden) {
+        return;
+    }
+
+    const target = event.target;
+
+    if (
+        target instanceof HTMLInputElement ||
+        target instanceof HTMLTextAreaElement ||
+        target instanceof HTMLSelectElement ||
+        target.isContentEditable
+    ) {
+        return;
+    }
+
+    if (event.key === "ArrowRight") {
+        event.preventDefault();
+        await epubRendition.next();
+    }
+    else if (event.key === "ArrowLeft") {
+        event.preventDefault();
+        await epubRendition.prev();
+    }
+});
