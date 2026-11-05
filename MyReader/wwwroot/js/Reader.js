@@ -18,12 +18,17 @@ const textContainer = document.getElementById("textContainer");
 const docxContainer = document.getElementById("docxContainer");
 const epubContainer = document.getElementById("epubContainer");
 
+const errorMessage = document.getElementById("errorMessage");
+
 uploadForm.addEventListener("submit", async (event) => {
     event.preventDefault();
 
     const file = fileInput.files[0];
 
     if (!file) return;
+
+    errorMessage.hidden = true;
+    errorMessage.textContent = "";
 
     uploadSection.hidden = true;
     readingSection.hidden = false;
@@ -55,7 +60,8 @@ uploadForm.addEventListener("submit", async (event) => {
         });
 
         if (!response.ok) {
-            throw new Error(await response.text());
+            const error = await response.json();
+            throw new Error(error.message || "An error occurred.");
         }
 
         const content = await response.arrayBuffer();
@@ -92,7 +98,8 @@ uploadForm.addEventListener("submit", async (event) => {
         readingSection.hidden = true;
         uploadSection.hidden = false;
 
-        alert("Could not open this file.");
+        errorMessage.textContent = error.message;
+        errorMessage.hidden = false;
     }
 });
 

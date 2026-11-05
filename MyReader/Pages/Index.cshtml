@@ -4,6 +4,7 @@
     Layout = null;
     ViewData["Title"] = "MyReader";
 }
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -16,14 +17,21 @@
           href="~/css/Reader.css"
           asp-append-version="true" />
 </head>
+
 <body>
     <main id="app">
+
         <section id="uploadSection">
+
             <h1>Welcome to MY Reader :)</h1>
 
             <form id="uploadForm">
+
                 @Html.AntiForgeryToken()
-                <label for="fileInput">Select a file to upload:</label>
+
+                <label for="fileInput">
+                    Select a file to upload:
+                </label>
 
                 <input type="file"
                        id="fileInput"
@@ -31,16 +39,31 @@
                        accept=".pdf,.txt,.docx,.epub"
                        required />
 
-                <button type="submit">Upload</button>
+                <button type="submit">
+                    Upload
+                </button>
+
             </form>
+
+            <div id="errorMessage"
+                 role="alert"
+                 hidden>
+            </div>
+
         </section>
 
         <section id="readingSection" hidden>
+
             <div id="pagesContainer"></div>
+
             <pre id="textContainer" hidden></pre>
+
             <article id="docxContainer" hidden></article>
+
             <div id="epubContainer" hidden></div>
+
         </section>
+
     </main>
 
     <script src="~/lib/mammoth/mammoth.browser.min.js"></script>
@@ -50,6 +73,8 @@
 
     <script type="module"
             src="~/js/Reader.js"
-            asp-append-version="true"></script>
+            asp-append-version="true">
+    </script>
+
 </body>
 </html>

@@ -8,7 +8,7 @@ namespace MyReader.Pages
 {
     public class IndexModel : PageModel
     {
-        IDocumentReadingService _readingService;
+        private readonly IDocumentReadingService _readingService;
         public IndexModel(IDocumentReadingService readingService)
         {
             _readingService = readingService;
@@ -20,7 +20,9 @@ namespace MyReader.Pages
             if (uploadedFile == null||uploadedFile.Length==0)
             {
                 operation.Failure(ApplicationMessage.NotFound);
-                return RedirectToPage();
+                operation.Message = ApplicationMessage.NotFound;
+
+                return BadRequest(operation);
             }
 
             string fileName = Path.GetFileName(uploadedFile.FileName);
@@ -31,7 +33,9 @@ namespace MyReader.Pages
             if(result==null)
             {
                 operation.Failure(ApplicationMessage.OperationFailed);
-                return RedirectToPage();
+                operation.Message = ApplicationMessage.OperationFailed;
+
+                return BadRequest(operation);
             }
             return File(result.Content, result.ContentType);
         }
