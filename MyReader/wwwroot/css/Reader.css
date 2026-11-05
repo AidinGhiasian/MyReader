@@ -21,6 +21,8 @@ body {
     min-height: 100vh;
 }
 
+/* Upload Section */
+
 #uploadSection {
     min-height: 100vh;
     display: flex;
@@ -51,10 +53,14 @@ body {
         font: inherit;
     }
 
+/* Reading Section */
+
 #readingSection {
     width: 100%;
     min-height: 100vh;
 }
+
+/* PDF */
 
 #pagesContainer {
     width: 100%;
@@ -73,6 +79,8 @@ body {
     box-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
 }
 
+/* TXT */
+
 #textContainer {
     width: 100%;
     min-height: 100vh;
@@ -87,54 +95,84 @@ body {
     overflow-wrap: break-word;
 }
 
-#docxContainer {
+/* DOCX & EPUB */
+
+#docxContainer,
+#epubContainer {
     width: 100%;
     min-height: 100vh;
-    padding: 48px max(24px, calc((100% - 850px) / 2));
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
+    padding: 24px 16px;
+    background: #111318;
+}
+
+/* Document Pages */
+
+.document-page {
+    width: min(794px, 100%);
+    height: 1123px;
+    flex-shrink: 0;
+    padding: 60px;
     background: #fff;
     color: #222;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
     font-family: "Segoe UI", sans-serif;
     font-size: 16px;
-    line-height: 1.9;
+    line-height: 1.8;
+    overflow: hidden;
     overflow-wrap: break-word;
 }
 
-    #docxContainer h1,
-    #docxContainer h2,
-    #docxContainer h3 {
+    .document-page h1,
+    .document-page h2,
+    .document-page h3 {
         line-height: 1.4;
     }
 
-    #docxContainer img {
+    .document-page img {
         display: block;
         max-width: 100%;
         height: auto;
         margin: 16px auto;
     }
 
-    #docxContainer table {
+    .document-page table {
         max-width: 100%;
         border-collapse: collapse;
     }
 
-    #docxContainer td,
-    #docxContainer th {
+    .document-page td,
+    .document-page th {
         border: 1px solid #bbb;
         padding: 6px 10px;
     }
 
-    #docxContainer p {
+    .document-page p {
         margin: 0 0 12px;
     }
 
-#epubContainer {
-    width: 100%;
-    min-height: 100vh;
-    background: #fff;
-    color: #222;
-    overflow-y: auto;
-}
+/* Hidden Elements */
 
 [hidden] {
     display: none !important;
+}
+
+/* Responsive */
+
+@media (max-width: 600px) {
+    .document-page {
+        padding: 32px 24px;
+        font-size: 14px;
+    }
+
+    #textContainer {
+        padding: 24px;
+    }
+
+    #uploadForm {
+        flex-direction: column;
+    }
 }

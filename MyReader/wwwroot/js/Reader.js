@@ -143,12 +143,14 @@ async function openText(file) {
     textContainer.textContent = await file.text();
 }
 
+
 async function openDocx(file) {
     if (!window.mammoth || !window.DOMPurify) {
         throw new Error("DOCX libraries could not be loaded.");
     }
 
     docxContainer.hidden = false;
+    docxContainer.replaceChildren();
 
     const arrayBuffer = await file.arrayBuffer();
 
@@ -165,10 +167,45 @@ async function openDocx(file) {
         }
     );
 
-    docxContainer.innerHTML = window.DOMPurify.sanitize(result.value, {
+    const sanitizedHtml = window.DOMPurify.sanitize(result.value, {
         ADD_DATA_URI_TAGS: ["img"]
     });
+
+    const content = document.createElement("div");
+    content.innerHTML = sanitizedHtml;
+
+    paginateDocx(content);
 }
+
+function paginateDocx(content) {
+    let currentPage = createDocumentPage();
+
+    const elements = Array.from(content.children);
+
+    for (const element of elements) {
+        currentPage.appendChild(element);
+
+        if (
+            currentPage.scrollHeight > currentPage.clientHeight &&
+            currentPage.children.length > 1
+        ) {
+            currentPage.removeChild(element);
+
+            currentPage = createDocumentPage();
+            currentPage.appendChild(element);
+        }
+    }
+}
+
+function createDocumentPage() {
+    const page = document.createElement("div");
+    page.className = "document-page";
+
+    docxContainer.appendChild(page);
+
+    return page;
+}
+
 
 async function openEpub(file) {
     if (!window.ePub) {
