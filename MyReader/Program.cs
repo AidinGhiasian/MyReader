@@ -1,4 +1,5 @@
 using MR.Application.Contracts.Readers;
+using MR.Application.Services;
 using MR.Infrastructure.Readers;
 using MyReaderManagment.MR.Application.Readers.Services;
 using MyReaderManagment.MR.Infrastructure.Readers;
@@ -10,6 +11,7 @@ builder.Services.AddRazorPages();
 // Dependency Injection
 builder.Services.AddScoped<IDocumentTypeDetector, DocumentTypeDetector>();
 builder.Services.AddScoped<IDocumentReaderFactory, DocumentReaderFactory>();
+builder.Services.AddScoped<IDocumentReadingService, DocumentReadingService>();
 builder.Services.AddScoped<IDocumentReader, PdfReader>();
 builder.Services.AddScoped<IDocumentReader, MyReaderManagment.MR.Infrastructure.Readers.TextReader>();
 builder.Services.AddScoped<IDocumentReader, WordReader>();

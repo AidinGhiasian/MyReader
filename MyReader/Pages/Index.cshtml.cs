@@ -8,12 +8,10 @@ namespace MyReader.Pages
 {
     public class IndexModel : PageModel
     {
-        private readonly IDocumentTypeDetector _typeDetector;
-        private readonly IDocumentReaderFactory _readerFactory;
-        public IndexModel(IDocumentTypeDetector typeDetector,IDocumentReaderFactory readerFactory)
+        IDocumentReadingService _readingService;
+        public IndexModel(IDocumentReadingService readingService)
         {
-            _typeDetector = typeDetector;
-            _readerFactory = readerFactory;
+            _readingService = readingService;
         }
         public async Task<IActionResult> OnPostReadAsync(IFormFile? uploadedFile, CancellationToken cancellationToken)
         {
@@ -26,26 +24,15 @@ namespace MyReader.Pages
             }
 
             string fileName = Path.GetFileName(uploadedFile.FileName);
-            DocumentType documentType = _typeDetector.Detect(fileName);
 
+            await using var stream = uploadedFile.OpenReadStream();
+            DocumentReadResult? result = await _readingService.ProcessAsync(stream, fileName, cancellationToken);
 
-            if (documentType==DocumentType.Unknown)
-            {
-                operation.Failure(ApplicationMessage.NotSupported);
-                return RedirectToPage();
-            }
-
-
-            IDocumentReader? reader = _readerFactory.Create(documentType);
-            if (reader==null)
+            if(result==null)
             {
                 operation.Failure(ApplicationMessage.OperationFailed);
                 return RedirectToPage();
             }
-
-
-            await using var stream = uploadedFile.OpenReadStream();
-            DocumentReadResult result = await reader.ReadAsync(stream,fileName,cancellationToken);
             return File(result.Content, result.ContentType);
         }
     }

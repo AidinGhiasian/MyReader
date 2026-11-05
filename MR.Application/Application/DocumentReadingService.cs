@@ -24,12 +24,14 @@ namespace MR.Application.Services
 
             if (documentType == DocumentType.Unknown)
             {
+                result.Failure(ApplicationMessage.NotSupported);
                 return null;
             }
             IDocumentReader? reader = _readerFactory.Create(documentType);
 
             if (reader == null)
             {
+                result.Failure(ApplicationMessage.NotFound);
                 return null;
             }
 
