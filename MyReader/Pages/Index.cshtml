@@ -36,7 +36,7 @@
                 <input type="file"
                        id="fileInput"
                        name="uploadedFile"
-                       accept=".pdf,.txt,.docx,.epub"
+                       accept=".pdf,.txt,.docx,.epub,.xlsx"
                        required />
 
                 <button type="submit">
@@ -62,6 +62,8 @@
 
             <div id="epubContainer" hidden></div>
 
+            <div id="xlsxContainer" hidden></div>
+
             <div id="epubControls" hidden>
 
                 <button type="button"
@@ -86,6 +88,7 @@
     <script src="~/lib/dompurify/purify.min.js"></script>
     <script src="~/lib/jszip/jszip.min.js"></script>
     <script src="~/lib/epub/epub.min.js"></script>
+    <script src="~/lib/xlsx/xlsx.full.min.js"></script>
 
     <script type="module"
             src="~/js/Reader.js"
