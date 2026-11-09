@@ -21,7 +21,8 @@
         {
             Succeeded = false;
             Failed = true;
+            Message = message;
             return this;
-        }
+        }operation
     }
 }
