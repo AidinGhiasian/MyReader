@@ -9,7 +9,10 @@
         public OperationResult()
         {
             Succeeded = false;
+            Failed = false;
+            Message = string.Empty;
         }
+
         public OperationResult Successful(string message = "عملیات با موفقیت انجام شد.")
         {
             Succeeded = true;
