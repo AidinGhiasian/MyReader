@@ -18,6 +18,7 @@ const textContainer = document.getElementById("textContainer");
 const docxContainer = document.getElementById("docxContainer");
 const epubContainer = document.getElementById("epubContainer");
 const xlsxContainer = document.getElementById("xlsxContainer");
+
 const epubControls = document.getElementById("epubControls");
 const epubPrev = document.getElementById("epubPrev");
 const epubNext = document.getElementById("epubNext");
@@ -25,6 +26,50 @@ const epubNext = document.getElementById("epubNext");
 const errorMessage = document.getElementById("errorMessage");
 
 let epubRendition = null;
+
+// Detect text direction
+
+function detectTextDirection(text) {
+    const rtlPattern = /[\u0590-\u08FF\uFB1D-\uFDFF\uFE70-\uFEFF]/;
+    const ltrPattern = /[A-Za-z]/;
+
+    for (const character of text) {
+        if (rtlPattern.test(character)) {
+            return "rtl";
+        }
+
+        if (ltrPattern.test(character)) {
+            return "ltr";
+        }
+    }
+
+    return "auto";
+}
+
+// Apply automatic direction to document content
+
+function applyAutoDirection(root) {
+    const rootElement =
+        root.nodeType === Node.DOCUMENT_NODE
+            ? root.documentElement
+            : root;
+
+    if (!rootElement) return;
+
+    rootElement.setAttribute("dir", "auto");
+
+    const textElements = root.querySelectorAll(
+        "p, h1, h2, h3, h4, h5, h6, li, td, th, blockquote"
+    );
+
+    textElements.forEach(element => {
+        if (element.textContent.trim()) {
+            element.setAttribute("dir", "auto");
+        }
+    });
+}
+
+// Upload and open document
 
 uploadForm.addEventListener("submit", async (event) => {
     event.preventDefault();
@@ -44,6 +89,7 @@ uploadForm.addEventListener("submit", async (event) => {
     docxContainer.replaceChildren();
     epubContainer.replaceChildren();
     xlsxContainer.replaceChildren();
+
     pagesContainer.hidden = true;
     textContainer.hidden = true;
     docxContainer.hidden = true;
@@ -54,10 +100,6 @@ uploadForm.addEventListener("submit", async (event) => {
     if (epubRendition) {
         epubRendition.destroy();
         epubRendition = null;
-
-    }
-    else if (extension === "xlsx") {
-        await openXlsx(documentFile);
     }
 
     try {
@@ -105,6 +147,9 @@ uploadForm.addEventListener("submit", async (event) => {
         else if (extension === "epub") {
             await openEpub(documentFile);
         }
+        else if (extension === "xlsx") {
+            await openXlsx(documentFile);
+        }
         else {
             throw new Error("Unsupported file format.");
         }
@@ -119,6 +164,8 @@ uploadForm.addEventListener("submit", async (event) => {
         errorMessage.hidden = false;
     }
 });
+
+// PDF Reader
 
 async function openPdf(file) {
     pagesContainer.hidden = false;
@@ -155,10 +202,15 @@ async function openPdf(file) {
     }
 }
 
+// TXT Reader
+
 async function openText(file) {
     textContainer.hidden = false;
     textContainer.textContent = await file.text();
+    textContainer.setAttribute("dir", "auto");
 }
+
+// DOCX Reader
 
 async function openDocx(file) {
     if (!window.mammoth || !window.DOMPurify) {
@@ -190,6 +242,8 @@ async function openDocx(file) {
     const content = document.createElement("div");
     content.innerHTML = sanitizedHtml;
 
+    applyAutoDirection(content);
+
     paginateDocx(content);
 }
 
@@ -216,11 +270,14 @@ function paginateDocx(content) {
 function createDocumentPage() {
     const page = document.createElement("div");
     page.className = "document-page";
+    page.setAttribute("dir", "auto");
 
     docxContainer.appendChild(page);
 
     return page;
 }
+
+// EPUB Reader
 
 async function openEpub(file) {
     if (!window.ePub) {
@@ -242,6 +299,12 @@ async function openEpub(file) {
         manager: "default",
         spread: "none",
         allowScriptedContent: false
+    });
+
+    epubRendition.hooks.content.register(contents => {
+        if (contents.document) {
+            applyAutoDirection(contents.document);
+        }
     });
 
     await epubRendition.display();
@@ -284,6 +347,9 @@ document.addEventListener("keydown", async (event) => {
         await epubRendition.prev();
     }
 });
+
+// XLSX Reader
+
 async function openXlsx(file) {
     if (!window.XLSX) {
         throw new Error("Excel library could not be loaded.");
@@ -337,6 +403,7 @@ async function openXlsx(file) {
 
         const table = document.createElement("table");
         table.className = "xlsx-table";
+        table.setAttribute("dir", "auto");
 
         rows.forEach(row => {
             const tr = document.createElement("tr");
@@ -345,6 +412,7 @@ async function openXlsx(file) {
                 const cell = document.createElement("td");
 
                 cell.textContent = String(value ?? "");
+                cell.setAttribute("dir", "auto");
 
                 tr.appendChild(cell);
             });

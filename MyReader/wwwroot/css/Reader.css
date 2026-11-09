@@ -65,7 +65,7 @@ body {
     min-height: 100vh;
 }
 
-/* PDF */
+/* PDF Reader */
 
 #pagesContainer {
     width: 100%;
@@ -84,7 +84,7 @@ body {
     box-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
 }
 
-/* TXT */
+/* TXT Reader */
 
 #textContainer {
     width: 100%;
@@ -98,6 +98,8 @@ body {
     line-height: 1.9;
     white-space: pre-wrap;
     overflow-wrap: break-word;
+    text-align: start;
+    unicode-bidi: plaintext;
 }
 
 /* DOCX Workspace */
@@ -128,6 +130,7 @@ body {
     line-height: 1.8;
     overflow: hidden;
     overflow-wrap: break-word;
+    text-align: start;
 }
 
     .document-page h1,
@@ -156,6 +159,23 @@ body {
 
     .document-page p {
         margin: 0 0 12px;
+    }
+
+    /* Automatic Text Direction */
+
+    .document-page p,
+    .document-page h1,
+    .document-page h2,
+    .document-page h3,
+    .document-page h4,
+    .document-page h5,
+    .document-page h6,
+    .document-page li,
+    .document-page td,
+    .document-page th,
+    .document-page blockquote {
+        text-align: start;
+        unicode-bidi: plaintext;
     }
 
 /* EPUB Container */
@@ -274,6 +294,8 @@ body {
         border: 1px solid #d6d9de;
         white-space: pre-wrap;
         overflow-wrap: break-word;
+        text-align: start;
+        unicode-bidi: plaintext;
     }
 
     .xlsx-table tr:first-child {
@@ -284,6 +306,7 @@ body {
     .xlsx-table tr:hover {
         background: #f3f7f4;
     }
+
 /* Hidden Elements */
 
 [hidden] {
