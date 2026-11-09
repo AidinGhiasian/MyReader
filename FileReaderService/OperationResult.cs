@@ -4,26 +4,23 @@
     {
         public bool Succeeded { get; set; }
         public bool Failed { get; set; }
-
-
-
         public string Message { get; set; }
 
         public OperationResult()
         {
             Succeeded = false;
         }
-
         public OperationResult Successful(string message = "عملیات با موفقیت انجام شد.")
         {
             Succeeded = true;
             Failed = false;
+            Message = message;
             return this;
         }
-
         public OperationResult Failure(string message)
         {
-            Failed = true; 
+            Succeeded = false;
+            Failed = true;
             return this;
         }
     }
