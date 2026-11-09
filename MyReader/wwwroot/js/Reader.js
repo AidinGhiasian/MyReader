@@ -17,7 +17,7 @@ const pagesContainer = document.getElementById("pagesContainer");
 const textContainer = document.getElementById("textContainer");
 const docxContainer = document.getElementById("docxContainer");
 const epubContainer = document.getElementById("epubContainer");
-
+const xlsxContainer = document.getElementById("xlsxContainer");
 const epubControls = document.getElementById("epubControls");
 const epubPrev = document.getElementById("epubPrev");
 const epubNext = document.getElementById("epubNext");
@@ -43,16 +43,21 @@ uploadForm.addEventListener("submit", async (event) => {
     textContainer.textContent = "";
     docxContainer.replaceChildren();
     epubContainer.replaceChildren();
-
+    xlsxContainer.replaceChildren();
     pagesContainer.hidden = true;
     textContainer.hidden = true;
     docxContainer.hidden = true;
     epubContainer.hidden = true;
     epubControls.hidden = true;
+    xlsxContainer.hidden = true;
 
     if (epubRendition) {
         epubRendition.destroy();
         epubRendition = null;
+
+    }
+    else if (extension === "xlsx") {
+        await openXlsx(documentFile);
     }
 
     try {
@@ -279,3 +284,76 @@ document.addEventListener("keydown", async (event) => {
         await epubRendition.prev();
     }
 });
+async function openXlsx(file) {
+    if (!window.XLSX) {
+        throw new Error("Excel library could not be loaded.");
+    }
+
+    xlsxContainer.hidden = false;
+    xlsxContainer.replaceChildren();
+
+    const workbook = window.XLSX.read(
+        await file.arrayBuffer(),
+        { type: "array" }
+    );
+
+    if (workbook.SheetNames.length === 0) {
+        throw new Error("This Excel file contains no worksheets.");
+    }
+
+    const sheetTabs = document.createElement("div");
+    sheetTabs.className = "xlsx-tabs";
+
+    const sheetContent = document.createElement("div");
+    sheetContent.className = "xlsx-sheet";
+
+    xlsxContainer.append(sheetTabs, sheetContent);
+
+    function showSheet(sheetName) {
+        sheetTabs.replaceChildren();
+        sheetContent.replaceChildren();
+
+        workbook.SheetNames.forEach(name => {
+            const button = document.createElement("button");
+
+            button.type = "button";
+            button.textContent = name;
+            button.className = name === sheetName ? "active" : "";
+
+            button.addEventListener("click", () => {
+                showSheet(name);
+            });
+
+            sheetTabs.appendChild(button);
+        });
+
+        const rows = window.XLSX.utils.sheet_to_json(
+            workbook.Sheets[sheetName],
+            {
+                header: 1,
+                defval: ""
+            }
+        );
+
+        const table = document.createElement("table");
+        table.className = "xlsx-table";
+
+        rows.forEach(row => {
+            const tr = document.createElement("tr");
+
+            row.forEach(value => {
+                const cell = document.createElement("td");
+
+                cell.textContent = String(value ?? "");
+
+                tr.appendChild(cell);
+            });
+
+            table.appendChild(tr);
+        });
+
+        sheetContent.appendChild(table);
+    }
+
+    showSheet(workbook.SheetNames[0]);
+}

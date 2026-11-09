@@ -208,6 +208,82 @@ body {
     right: 20px;
 }
 
+/* XLSX Workspace */
+
+#xlsxContainer {
+    width: 100%;
+    min-height: 100vh;
+    padding: 24px;
+    background: #111318;
+    overflow: auto;
+}
+
+/* XLSX Sheet Tabs */
+
+.xlsx-tabs {
+    display: flex;
+    gap: 6px;
+    width: 100%;
+    overflow-x: auto;
+    padding-bottom: 12px;
+}
+
+    .xlsx-tabs button {
+        flex-shrink: 0;
+        padding: 10px 18px;
+        border: 1px solid #444a55;
+        border-radius: 6px;
+        background: #252932;
+        color: #ddd;
+        font: inherit;
+        cursor: pointer;
+    }
+
+        .xlsx-tabs button:hover {
+            background: #353c48;
+        }
+
+        .xlsx-tabs button.active {
+            background: #3d765b;
+            border-color: #3d765b;
+            color: #fff;
+        }
+
+/* XLSX Table */
+
+.xlsx-sheet {
+    width: 100%;
+    overflow: auto;
+    background: #fff;
+}
+
+.xlsx-table {
+    width: max-content;
+    min-width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+    color: #222;
+    font-family: "Segoe UI", sans-serif;
+    font-size: 14px;
+}
+
+    .xlsx-table td {
+        min-width: 100px;
+        max-width: 350px;
+        padding: 9px 12px;
+        border: 1px solid #d6d9de;
+        white-space: pre-wrap;
+        overflow-wrap: break-word;
+    }
+
+    .xlsx-table tr:first-child {
+        background: #edf1f5;
+        font-weight: 600;
+    }
+
+    .xlsx-table tr:hover {
+        background: #f3f7f4;
+    }
 /* Hidden Elements */
 
 [hidden] {
