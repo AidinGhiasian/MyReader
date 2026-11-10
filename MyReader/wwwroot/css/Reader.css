@@ -1,351 +1,83 @@
 ﻿
-* {
-    box-sizing: border-box;
+/* Reader Top Bar */
+
+#readerTopBar {
+    position: fixed;
+    top: 14px;
+    right: 16px;
+    z-index: 200;
 }
 
-html,
-body {
-    width: 100%;
-    min-height: 100%;
-    margin: 0;
-}
-
-body {
-    background: #111318;
-    color: #f2f2f2;
-    font-family: "Segoe UI", sans-serif;
-}
-
-#app {
-    width: 100%;
-    min-height: 100vh;
-}
-
-/* Upload Section */
-
-#uploadSection {
-    min-height: 100vh;
+#homeButton {
+    width: 40px;
+    height: 40px;
     display: flex;
-    flex-direction: column;
+    align-items: center;
     justify-content: center;
-    align-items: center;
-    gap: 22px;
-}
-
-    #uploadSection h1 {
-        margin: 0;
-        font-size: 25px;
-        font-weight: 500;
-    }
-
-#uploadForm {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-    #uploadForm label {
-        font-size: 14px;
-    }
-
-    #uploadForm input,
-    #uploadForm button {
-        font: inherit;
-    }
-
-#errorMessage {
-    color: #ff7777;
-    font-size: 14px;
-}
-
-/* Reading Section */
-
-#readingSection {
-    width: 100%;
-    min-height: 100vh;
-}
-
-/* PDF Reader */
-
-#pagesContainer {
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 16px;
-    padding: 16px 0;
-}
-
-.pdf-page {
-    display: block;
-    max-width: 100%;
-    height: auto;
-    background: white;
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
-}
-
-/* TXT Reader */
-
-#textContainer {
-    width: 100%;
-    min-height: 100vh;
-    margin: 0;
-    padding: 40px;
+    border: 1px solid #414752;
+    border-radius: 10px;
+    background: rgba(37, 41, 50, 0.95);
     color: #f2f2f2;
-    background: #111318;
-    font-family: "Segoe UI", sans-serif;
-    font-size: 16px;
-    line-height: 1.9;
-    white-space: pre-wrap;
-    overflow-wrap: break-word;
-    text-align: start;
-    unicode-bidi: plaintext;
+    text-decoration: none;
+    transition: background 0.2s ease, transform 0.2s ease;
 }
 
-/* DOCX Workspace */
-
-#docxContainer {
-    width: 100%;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 24px;
-    padding: 24px 16px;
-    background: #111318;
-}
-
-/* DOCX Pages */
-
-.document-page {
-    width: min(794px, 100%);
-    height: 1123px;
-    flex-shrink: 0;
-    padding: 60px;
-    background: #fff;
-    color: #222;
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
-    font-family: "Segoe UI", sans-serif;
-    font-size: 16px;
-    line-height: 1.8;
-    overflow: hidden;
-    overflow-wrap: break-word;
-    text-align: start;
-}
-
-    .document-page h1,
-    .document-page h2,
-    .document-page h3 {
-        line-height: 1.4;
+    #homeButton:hover {
+        background: #3d765b;
+        transform: translateY(-2px);
     }
 
-    .document-page img {
-        display: block;
-        max-width: 100%;
-        height: auto;
-        margin: 16px auto;
-    }
+/* Drag and Drop Overlay */
 
-    .document-page table {
-        max-width: 100%;
-        border-collapse: collapse;
-    }
-
-    .document-page td,
-    .document-page th {
-        border: 1px solid #bbb;
-        padding: 6px 10px;
-    }
-
-    .document-page p {
-        margin: 0 0 12px;
-    }
-
-    /* Automatic Text Direction */
-
-    .document-page p,
-    .document-page h1,
-    .document-page h2,
-    .document-page h3,
-    .document-page h4,
-    .document-page h5,
-    .document-page h6,
-    .document-page li,
-    .document-page td,
-    .document-page th,
-    .document-page blockquote {
-        text-align: start;
-        unicode-bidi: plaintext;
-    }
-
-/* EPUB Container */
-
-#epubContainer {
-    width: min(794px, calc(100vw - 32px));
-    height: min(1123px, calc(100vh - 32px));
-    min-height: 400px;
-    margin: 16px auto;
-    background: #fff;
-    color: #222;
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
-    overflow: hidden;
-}
-
-/* EPUB Navigation */
-
-#epubControls {
+#dropOverlay {
     position: fixed;
     inset: 0;
-    z-index: 100;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: rgba(10, 13, 18, 0.92);
     pointer-events: none;
 }
 
-    #epubControls button {
-        position: absolute;
-        top: 50%;
-        transform: translateY(-50%);
-        width: 48px;
-        height: 64px;
-        border: none;
-        border-radius: 10px;
-        background: rgba(45, 49, 58, 0.9);
-        color: white;
-        font-size: 24px;
-        cursor: pointer;
-        pointer-events: auto;
-        transition: background 0.2s ease;
+    #dropOverlay[hidden] {
+        display: none !important;
     }
 
-        #epubControls button:hover {
-            background: #555d6b;
-        }
-
-#epubPrev {
-    left: 20px;
-}
-
-#epubNext {
-    right: 20px;
-}
-
-/* XLSX Workspace */
-
-#xlsxContainer {
-    width: 100%;
-    min-height: 100vh;
-    padding: 24px;
-    background: #111318;
-    overflow: auto;
-}
-
-/* XLSX Sheet Tabs */
-
-.xlsx-tabs {
+#dropMessage {
+    width: min(500px, 100%);
+    min-height: 260px;
     display: flex;
-    gap: 6px;
-    width: 100%;
-    overflow-x: auto;
-    padding-bottom: 12px;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    border: 2px dashed #65b58c;
+    border-radius: 20px;
+    background: #202630;
+    color: #f2f2f2;
+    text-align: center;
 }
 
-    .xlsx-tabs button {
-        flex-shrink: 0;
-        padding: 10px 18px;
-        border: 1px solid #444a55;
-        border-radius: 6px;
-        background: #252932;
-        color: #ddd;
-        font: inherit;
-        cursor: pointer;
+    #dropMessage svg {
+        color: #65b58c;
     }
 
-        .xlsx-tabs button:hover {
-            background: #353c48;
-        }
-
-        .xlsx-tabs button.active {
-            background: #3d765b;
-            border-color: #3d765b;
-            color: #fff;
-        }
-
-/* XLSX Table */
-
-.xlsx-sheet {
-    width: 100%;
-    overflow: auto;
-    background: #fff;
-}
-
-.xlsx-table {
-    width: max-content;
-    min-width: 100%;
-    border-collapse: collapse;
-    background: #fff;
-    color: #222;
-    font-family: "Segoe UI", sans-serif;
-    font-size: 14px;
-}
-
-    .xlsx-table td {
-        min-width: 100px;
-        max-width: 350px;
-        padding: 9px 12px;
-        border: 1px solid #d6d9de;
-        white-space: pre-wrap;
-        overflow-wrap: break-word;
-        text-align: start;
-        unicode-bidi: plaintext;
+    #dropMessage h2 {
+        margin: 0;
+        font-size: 23px;
+        font-weight: 500;
     }
 
-    .xlsx-table tr:first-child {
-        background: #edf1f5;
-        font-weight: 600;
-    }
-
-    .xlsx-table tr:hover {
-        background: #f3f7f4;
-    }
-
-/* Hidden Elements */
-
-[hidden] {
-    display: none !important;
-}
-
-/* Responsive */
-
-@media (max-width: 600px) {
-    #uploadForm {
-        flex-direction: column;
-    }
-
-    #textContainer {
-        padding: 24px;
-    }
-
-    .document-page {
-        padding: 32px 24px;
+    #dropMessage p {
+        margin: 0;
+        color: #aab2bf;
         font-size: 14px;
     }
 
-    #epubContainer {
-        width: calc(100vw - 24px);
-        height: calc(100vh - 32px);
-        min-height: 400px;
-    }
+/* Dragging State */
 
-    #epubPrev {
-        left: 6px;
-    }
-
-    #epubNext {
-        right: 6px;
-    }
-
-    #epubControls button {
-        width: 36px;
-        height: 52px;
-        font-size: 20px;
-    }
+body.dragging-file {
+    user-select: none;
 }

@@ -24,29 +24,20 @@ const epubPrev = document.getElementById("epubPrev");
 const epubNext = document.getElementById("epubNext");
 
 const errorMessage = document.getElementById("errorMessage");
+const dropOverlay = document.getElementById("dropOverlay");
 
 let epubRendition = null;
+let dragCounter = 0;
 
-// Detect text direction
+const allowedExtensions = [
+    "pdf",
+    "txt",
+    "docx",
+    "epub",
+    "xlsx"
+];
 
-function detectTextDirection(text) {
-    const rtlPattern = /[\u0590-\u08FF\uFB1D-\uFDFF\uFE70-\uFEFF]/;
-    const ltrPattern = /[A-Za-z]/;
-
-    for (const character of text) {
-        if (rtlPattern.test(character)) {
-            return "rtl";
-        }
-
-        if (ltrPattern.test(character)) {
-            return "ltr";
-        }
-    }
-
-    return "auto";
-}
-
-// Apply automatic direction to document content
+// Automatic Text Direction
 
 function applyAutoDirection(root) {
     const rootElement =
@@ -69,7 +60,7 @@ function applyAutoDirection(root) {
     });
 }
 
-// Upload and open document
+// Upload Form
 
 uploadForm.addEventListener("submit", async (event) => {
     event.preventDefault();
@@ -77,6 +68,19 @@ uploadForm.addEventListener("submit", async (event) => {
     const file = fileInput.files[0];
 
     if (!file) return;
+
+    await uploadFile(file);
+});
+
+// Shared Upload Function
+
+async function uploadFile(file) {
+    const extension = file.name.split(".").pop().toLowerCase();
+
+    if (!allowedExtensions.includes(extension)) {
+        showError("Unsupported file format.");
+        return;
+    }
 
     errorMessage.hidden = true;
     errorMessage.textContent = "";
@@ -106,21 +110,38 @@ uploadForm.addEventListener("submit", async (event) => {
         const formData = new FormData();
         formData.append("uploadedFile", file);
 
-        const token = document.querySelector(
+        const tokenElement = document.querySelector(
             'input[name="__RequestVerificationToken"]'
-        ).value;
+        );
+
+        const token = tokenElement?.value;
 
         const response = await fetch("/?handler=Read", {
             method: "POST",
             body: formData,
-            headers: {
-                "RequestVerificationToken": token
-            }
+            headers: token
+                ? {
+                    "RequestVerificationToken": token
+                }
+                : {}
         });
 
         if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.message || "An error occurred.");
+            const errorText = await response.text();
+
+            let message = "An error occurred while reading the file.";
+
+            try {
+                const error = JSON.parse(errorText);
+                message = error.message || message;
+            }
+            catch {
+                if (errorText.trim()) {
+                    message = errorText;
+                }
+            }
+
+            throw new Error(message);
         }
 
         const content = await response.arrayBuffer();
@@ -129,11 +150,9 @@ uploadForm.addEventListener("submit", async (event) => {
             [content],
             file.name,
             {
-                type: response.headers.get("Content-Type")
+                type: response.headers.get("Content-Type") || file.type
             }
         );
-
-        const extension = file.name.split(".").pop().toLowerCase();
 
         if (extension === "pdf") {
             await openPdf(documentFile);
@@ -150,9 +169,6 @@ uploadForm.addEventListener("submit", async (event) => {
         else if (extension === "xlsx") {
             await openXlsx(documentFile);
         }
-        else {
-            throw new Error("Unsupported file format.");
-        }
     }
     catch (error) {
         console.error(error);
@@ -160,10 +176,73 @@ uploadForm.addEventListener("submit", async (event) => {
         readingSection.hidden = true;
         uploadSection.hidden = false;
 
-        errorMessage.textContent = error.message;
-        errorMessage.hidden = false;
+        showError(error.message);
+    }
+}
+
+function showError(message) {
+    errorMessage.textContent = message;
+    errorMessage.hidden = false;
+}
+
+// Drag and Drop
+
+function isFileDrag(event) {
+    return event.dataTransfer &&
+        Array.from(event.dataTransfer.types).includes("Files");
+}
+
+document.addEventListener("dragenter", event => {
+    if (!isFileDrag(event)) return;
+
+    event.preventDefault();
+
+    dragCounter++;
+
+    dropOverlay.hidden = false;
+    document.body.classList.add("dragging-file");
+});
+
+document.addEventListener("dragover", event => {
+    if (!isFileDrag(event)) return;
+
+    event.preventDefault();
+
+    event.dataTransfer.dropEffect = "copy";
+});
+
+document.addEventListener("dragleave", event => {
+    if (!isFileDrag(event)) return;
+
+    event.preventDefault();
+
+    dragCounter--;
+
+    if (dragCounter <= 0) {
+        dragCounter = 0;
+        hideDropOverlay();
     }
 });
+
+document.addEventListener("drop", async event => {
+    event.preventDefault();
+
+    dragCounter = 0;
+    hideDropOverlay();
+
+    const file = event.dataTransfer?.files?.[0];
+
+    if (!file) return;
+
+    fileInput.value = "";
+
+    await uploadFile(file);
+});
+
+function hideDropOverlay() {
+    dropOverlay.hidden = true;
+    document.body.classList.remove("dragging-file");
+}
 
 // PDF Reader
 
