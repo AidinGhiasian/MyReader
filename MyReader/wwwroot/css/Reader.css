@@ -1,4 +1,22 @@
 ﻿
+:root {
+    color-scheme: dark;
+    --background: #111318;
+    --surface: #1b2029;
+    --surface-hover: #252c37;
+    --border: #343c49;
+    --accent: #438466;
+    --accent-hover: #519b79;
+    --text: #f1f3f5;
+    --muted: #aab2bf;
+    --reader-padding: clamp(12px, 2.5vw, 32px);
+    --reader-gap: clamp(12px, 2vw, 24px);
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+    --safe-left: env(safe-area-inset-left, 0px);
+    --safe-right: env(safe-area-inset-right, 0px);
+}
+
 * {
     box-sizing: border-box;
 }
@@ -11,15 +29,35 @@ body {
 }
 
 html {
-    overflow-x: hidden;
+    overflow-x: clip;
+    scroll-behavior: smooth;
 }
 
 body {
-    background: #111318;
-    color: #f2f2f2;
-    font-family: "Segoe UI", sans-serif;
-    overflow-x: hidden;
+    min-height: 100vh;
+    min-height: 100dvh;
+    background: var(--background);
+    color: var(--text);
+    font-family: "Segoe UI", Tahoma, sans-serif;
+    overflow-x: clip;
+    -webkit-font-smoothing: antialiased;
 }
+
+button,
+input {
+    font: inherit;
+}
+
+button {
+    -webkit-tap-highlight-color: transparent;
+}
+
+    button:focus-visible,
+    input:focus-visible,
+    a:focus-visible {
+        outline: 2px solid #72c49b;
+        outline-offset: 3px;
+    }
 
 #app {
     width: 100%;
@@ -27,7 +65,9 @@ body {
     min-height: 100dvh;
 }
 
-/* Upload */
+/* =========================
+   Upload
+========================= */
 
 #uploadSection {
     width: 100%;
@@ -37,62 +77,92 @@ body {
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    gap: 22px;
-    padding: 24px;
+    gap: 24px;
+    padding: max(24px, var(--safe-top)) max(20px, var(--safe-right)) max(24px, var(--safe-bottom)) max(20px, var(--safe-left));
 }
 
     #uploadSection h1 {
         margin: 0;
-        font-size: clamp(20px, 3vw, 25px);
-        font-weight: 500;
+        color: var(--text);
+        font-size: clamp(22px, 3vw, 30px);
+        font-weight: 600;
+        letter-spacing: -0.5px;
         text-align: center;
     }
 
 #uploadForm {
-    width: min(100%, 650px);
+    width: min(100%, 560px);
     display: flex;
     align-items: center;
     justify-content: center;
     flex-wrap: wrap;
     gap: 12px;
+    padding: 20px;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    background: var(--surface);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18);
 }
 
     #uploadForm label {
+        width: 100%;
+        color: var(--muted);
         font-size: 14px;
-    }
-
-    #uploadForm input,
-    #uploadForm button {
-        max-width: 100%;
-        font: inherit;
+        text-align: center;
     }
 
     #uploadForm input {
         min-width: 0;
+        max-width: 100%;
+        color: var(--muted);
     }
 
+        #uploadForm input::file-selector-button {
+            margin-right: 10px;
+            padding: 9px 13px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: var(--surface-hover);
+            color: var(--text);
+            cursor: pointer;
+        }
+
     #uploadForm button {
-        padding: 9px 18px;
-        border: 1px solid #414752;
-        border-radius: 8px;
-        background: #3d765b;
-        color: #fff;
+        min-height: 42px;
+        padding: 9px 22px;
+        border: 1px solid transparent;
+        border-radius: 9px;
+        background: var(--accent);
+        color: white;
+        font-weight: 600;
         cursor: pointer;
+        transition: background 0.2s ease, transform 0.2s ease;
     }
 
         #uploadForm button:hover {
-            background: #478768;
+            background: var(--accent-hover);
+        }
+
+        #uploadForm button:active {
+            transform: scale(0.97);
         }
 
 #errorMessage {
-    max-width: min(600px, 100%);
-    color: #ff7777;
+    width: min(600px, 100%);
+    padding: 12px 16px;
+    border: 1px solid rgba(255, 110, 110, 0.2);
+    border-radius: 10px;
+    background: rgba(255, 90, 90, 0.08);
+    color: #ff8585;
     font-size: 14px;
+    line-height: 1.7;
     text-align: center;
     overflow-wrap: anywhere;
 }
 
-/* Reading */
+/* =========================
+   Reading Layout
+========================= */
 
 #readingSection {
     position: relative;
@@ -100,17 +170,22 @@ body {
     min-height: 100vh;
     min-height: 100dvh;
     padding-top: 1px;
+    padding-bottom: var(--safe-bottom);
 }
 
-/* PDF */
+/* =========================
+   PDF
+========================= */
 
 #pagesContainer {
     width: 100%;
+    min-height: 100vh;
+    min-height: 100dvh;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 16px;
-    padding: 20px 16px;
+    gap: var(--reader-gap);
+    padding: clamp(20px, 3vw, 36px) var(--reader-padding) 40px;
     overflow: visible;
 }
 
@@ -120,22 +195,25 @@ body {
     max-width: 100%;
     height: auto;
     background: #fff;
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
+    border-radius: 2px;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2), 0 14px 35px rgba(0, 0, 0, 0.25);
 }
 
-/* TXT */
+/* =========================
+   TXT
+========================= */
 
 #textContainer {
-    width: 100%;
+    width: min(100%, 1050px);
     min-height: 100vh;
     min-height: 100dvh;
-    margin: 0;
-    padding: clamp(20px, 4vw, 48px);
-    color: #f2f2f2;
-    background: #111318;
-    font-family: "Segoe UI", sans-serif;
-    font-size: 16px;
-    line-height: 1.9;
+    margin: 0 auto;
+    padding: clamp(32px, 5vw, 64px) clamp(20px, 5vw, 72px);
+    background: var(--background);
+    color: var(--text);
+    font-family: "Segoe UI", Tahoma, sans-serif;
+    font-size: clamp(15px, 1.2vw, 17px);
+    line-height: 2;
     white-space: pre-wrap;
     overflow-wrap: anywhere;
     word-break: normal;
@@ -143,7 +221,9 @@ body {
     unicode-bidi: plaintext;
 }
 
-/* DOCX */
+/* =========================
+   DOCX
+========================= */
 
 #docxContainer {
     width: 100%;
@@ -152,21 +232,23 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 24px;
-    padding: 24px 16px;
-    background: #111318;
+    gap: clamp(16px, 2vw, 28px);
+    padding: clamp(20px, 3vw, 36px) var(--reader-padding) 40px;
+    background: var(--background);
 }
 
 .document-page {
+    position: relative;
     width: min(794px, 100%);
     min-height: 1123px;
     height: 1123px;
     flex: 0 0 auto;
-    padding: clamp(24px, 5vw, 60px);
+    padding: clamp(40px, 5vw, 60px);
     background: #fff;
-    color: #222;
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
-    font-family: "Segoe UI", sans-serif;
+    color: #242424;
+    border-radius: 2px;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2), 0 14px 35px rgba(0, 0, 0, 0.25);
+    font-family: "Segoe UI", Tahoma, sans-serif;
     font-size: 16px;
     line-height: 1.8;
     overflow: visible;
@@ -177,8 +259,16 @@ body {
 
     .document-page h1,
     .document-page h2,
-    .document-page h3 {
-        line-height: 1.4;
+    .document-page h3,
+    .document-page h4,
+    .document-page h5,
+    .document-page h6 {
+        line-height: 1.45;
+        overflow-wrap: anywhere;
+    }
+
+    .document-page p {
+        margin: 0 0 14px;
     }
 
     .document-page img {
@@ -186,7 +276,7 @@ body {
         max-width: 100%;
         height: auto;
         object-fit: contain;
-        margin: 16px auto;
+        margin: 18px auto;
     }
 
     .document-page table {
@@ -198,12 +288,8 @@ body {
     .document-page td,
     .document-page th {
         border: 1px solid #bbb;
-        padding: 6px 10px;
+        padding: 7px 10px;
         overflow-wrap: anywhere;
-    }
-
-    .document-page p {
-        margin: 0 0 12px;
     }
 
     .document-page p,
@@ -221,16 +307,19 @@ body {
         unicode-bidi: plaintext;
     }
 
-/* EPUB */
+/* =========================
+   EPUB
+========================= */
 
 #epubContainer {
-    width: min(794px, calc(100vw - 32px));
-    height: min(1123px, calc(100dvh - 32px));
-    min-height: 0;
-    margin: 16px auto;
+    width: min(794px, calc(100vw - 48px));
+    height: min(1123px, calc(100dvh - 48px));
+    min-height: 300px;
+    margin: 24px auto;
     background: #fff;
     color: #222;
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
+    border-radius: 3px;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2), 0 14px 35px rgba(0, 0, 0, 0.25);
     overflow: hidden;
 }
 
@@ -252,70 +341,82 @@ body {
         display: flex;
         align-items: center;
         justify-content: center;
-        border: none;
-        border-radius: 10px;
-        background: rgba(45, 49, 58, 0.9);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 12px;
+        background: rgba(35, 40, 49, 0.88);
         color: #fff;
-        font-size: 24px;
+        font-size: 23px;
         cursor: pointer;
         pointer-events: auto;
-        transition: background 0.2s ease;
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        transition: background 0.2s ease, opacity 0.2s ease;
     }
 
         #epubControls button:hover {
-            background: #555d6b;
+            background: var(--accent);
         }
 
 #epubPrev {
-    left: 20px;
+    left: max(20px, var(--safe-left));
 }
 
 #epubNext {
-    right: 20px;
+    right: max(20px, var(--safe-right));
 }
 
-/* XLSX */
+/* =========================
+   XLSX
+========================= */
 
 #xlsxContainer {
     width: 100%;
     min-height: 100vh;
     min-height: 100dvh;
-    padding: clamp(12px, 3vw, 24px);
-    background: #111318;
+    padding: var(--reader-padding);
+    background: var(--background);
     overflow: auto;
     overscroll-behavior: contain;
 }
 
 .xlsx-tabs {
+    position: sticky;
+    top: 0;
+    z-index: 5;
     width: 100%;
     display: flex;
-    gap: 6px;
+    align-items: center;
+    gap: 8px;
     overflow-x: auto;
     overflow-y: hidden;
-    padding-bottom: 12px;
+    padding: 4px 2px 14px;
     scrollbar-width: thin;
+    scrollbar-color: #505968 transparent;
 }
 
     .xlsx-tabs button {
         flex: 0 0 auto;
         max-width: 220px;
-        padding: 10px 18px;
-        border: 1px solid #444a55;
-        border-radius: 6px;
-        background: #252932;
-        color: #ddd;
-        font: inherit;
+        min-height: 42px;
+        padding: 9px 18px;
+        border: 1px solid var(--border);
+        border-radius: 9px;
+        background: var(--surface);
+        color: var(--muted);
+        font-size: 14px;
         cursor: pointer;
         white-space: nowrap;
+        transition: background 0.2s ease, color 0.2s ease;
     }
 
         .xlsx-tabs button:hover {
-            background: #353c48;
+            background: var(--surface-hover);
+            color: var(--text);
         }
 
         .xlsx-tabs button.active {
-            background: #3d765b;
-            border-color: #3d765b;
+            background: var(--accent);
+            border-color: var(--accent);
             color: #fff;
         }
 
@@ -324,6 +425,7 @@ body {
     max-width: 100%;
     overflow: auto;
     background: #fff;
+    border-radius: 10px;
     overscroll-behavior: contain;
     -webkit-overflow-scrolling: touch;
 }
@@ -334,14 +436,14 @@ body {
     border-collapse: collapse;
     background: #fff;
     color: #222;
-    font-family: "Segoe UI", sans-serif;
+    font-family: "Segoe UI", Tahoma, sans-serif;
     font-size: 14px;
 }
 
     .xlsx-table td {
         min-width: 100px;
         max-width: 350px;
-        padding: 9px 12px;
+        padding: 10px 13px;
         border: 1px solid #d6d9de;
         white-space: pre-wrap;
         overflow-wrap: anywhere;
@@ -358,41 +460,41 @@ body {
         background: #f3f7f4;
     }
 
-/* Hidden */
-
-[hidden] {
-    display: none !important;
-}
-
-/* Top Bar */
+/* =========================
+   Top Bar
+========================= */
 
 #readerTopBar {
     position: fixed;
-    top: max(12px, env(safe-area-inset-top));
-    right: max(12px, env(safe-area-inset-right));
+    top: max(14px, var(--safe-top));
+    right: max(14px, var(--safe-right));
     z-index: 200;
 }
 
 #homeButton {
-    width: 40px;
-    height: 40px;
+    width: 44px;
+    height: 44px;
     display: flex;
     align-items: center;
     justify-content: center;
-    border: 1px solid #414752;
-    border-radius: 10px;
-    background: rgba(37, 41, 50, 0.95);
-    color: #f2f2f2;
+    border: 1px solid rgba(255, 255, 255, 0.13);
+    border-radius: 12px;
+    background: rgba(34, 39, 48, 0.92);
+    color: var(--text);
     text-decoration: none;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     transition: background 0.2s ease, transform 0.2s ease;
 }
 
     #homeButton:hover {
-        background: #3d765b;
+        background: var(--accent);
         transform: translateY(-2px);
     }
 
-/* Drag and Drop */
+/* =========================
+   Drag and Drop
+========================= */
 
 #dropOverlay {
     position: fixed;
@@ -417,12 +519,12 @@ body {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 12px;
-    padding: 24px;
+    gap: 14px;
+    padding: 28px;
     border: 2px dashed #65b58c;
     border-radius: 20px;
     background: #202630;
-    color: #f2f2f2;
+    color: var(--text);
     text-align: center;
 }
 
@@ -433,112 +535,186 @@ body {
     #dropMessage h2 {
         margin: 0;
         font-size: 23px;
-        font-weight: 500;
+        font-weight: 600;
     }
 
     #dropMessage p {
         margin: 0;
-        color: #aab2bf;
+        color: var(--muted);
         font-size: 14px;
+        line-height: 1.7;
     }
 
 body.dragging-file {
     user-select: none;
 }
 
-/* Tablet */
+/* =========================
+   Large Screens
+========================= */
 
-@media (max-width: 900px) {
-    .document-page {
-        width: min(794px, 100%);
-        padding: 36px;
+@media (min-width: 1400px) {
+    #pagesContainer {
+        gap: 28px;
     }
 
-    #epubPrev {
-        left: 10px;
+    #docxContainer {
+        gap: 28px;
     }
 
-    #epubNext {
-        right: 10px;
+    #epubContainer {
+        width: min(850px, calc(100vw - 80px));
     }
 }
 
-/* Mobile */
+/* =========================
+   Tablet
+========================= */
+
+@media (max-width: 900px) {
+    :root {
+        --reader-padding: 18px;
+    }
+
+    .document-page {
+        width: min(794px, 100%);
+        padding: 42px;
+    }
+
+    #epubContainer {
+        width: min(794px, calc(100vw - 40px));
+        height: min(1123px, calc(100dvh - 40px));
+    }
+
+    #epubPrev {
+        left: max(10px, var(--safe-left));
+    }
+
+    #epubNext {
+        right: max(10px, var(--safe-right));
+    }
+}
+
+/* =========================
+   Mobile
+========================= */
 
 @media (max-width: 600px) {
+    :root {
+        --reader-padding: 10px;
+        --reader-gap: 14px;
+    }
+
     #uploadSection {
-        gap: 18px;
+        gap: 20px;
+        padding: 24px 16px;
+    }
+
+        #uploadSection h1 {
+            font-size: 23px;
+        }
+
+    #uploadForm {
+        width: min(100%, 380px);
+        flex-direction: column;
+        align-items: stretch;
+        gap: 14px;
         padding: 20px 16px;
     }
 
-    #uploadForm {
-        flex-direction: column;
-        align-items: stretch;
-        width: min(100%, 360px);
-    }
-
-        #uploadForm input,
-        #uploadForm button {
+        #uploadForm input {
             width: 100%;
         }
 
-        #uploadForm label {
-            text-align: center;
+        #uploadForm button {
+            width: 100%;
+            min-height: 46px;
         }
 
     #pagesContainer {
         gap: 12px;
-        padding: 12px 8px;
+        padding: 62px 8px 20px;
+    }
+
+    .pdf-page {
+        border-radius: 1px;
     }
 
     #textContainer {
-        padding: 56px 18px 24px;
+        width: 100%;
+        padding: 64px 20px max(28px, var(--safe-bottom));
         font-size: 15px;
-        line-height: 1.85;
+        line-height: 1.9;
     }
 
     #docxContainer {
-        gap: 16px;
-        padding: 12px 8px;
+        gap: 14px;
+        padding: 60px 8px max(20px, var(--safe-bottom));
     }
 
     .document-page {
         width: 100%;
         min-height: 0;
         height: auto;
-        padding: 28px 20px;
+        padding: 30px 22px;
+        border-radius: 5px;
         font-size: 14px;
-        line-height: 1.75;
+        line-height: 1.8;
+        box-shadow: 0 4px 18px rgba(0, 0, 0, 0.25);
     }
 
         .document-page img {
+            max-width: 100%;
             max-height: none;
+        }
+
+        .document-page table {
+            width: 100%;
+            max-width: 100%;
+        }
+
+        .document-page td,
+        .document-page th {
+            padding: 6px;
         }
 
     #epubContainer {
         width: calc(100vw - 16px);
         height: calc(100dvh - 24px);
+        min-height: 250px;
         margin: 12px auto;
+        border-radius: 4px;
     }
 
     #epubControls button {
-        width: 34px;
-        height: 48px;
-        border-radius: 8px;
-        font-size: 18px;
+        width: 38px;
+        height: 52px;
+        border-radius: 10px;
+        font-size: 19px;
     }
 
     #epubPrev {
-        left: 4px;
+        left: max(4px, var(--safe-left));
     }
 
     #epubNext {
-        right: 4px;
+        right: max(4px, var(--safe-right));
     }
 
     #xlsxContainer {
-        padding: 12px;
+        padding: 58px 10px max(16px, var(--safe-bottom));
     }
+
+    .xlsx-tabs {
+        gap: 6px;
+        padding-bottom: 12px;
+    }
+
+        .xlsx-tabs button {
+            min-height: 42px;
+            padding: 9px 14px;
+            font-size: 13px;
+        }
 
     .xlsx-table {
         font-size: 13px;
@@ -551,25 +727,97 @@ body.dragging-file {
         }
 
     #readerTopBar {
-        top: max(8px, env(safe-area-inset-top));
-        right: max(8px, env(safe-area-inset-right));
+        top: max(8px, var(--safe-top));
+        right: max(8px, var(--safe-right));
     }
 
     #homeButton {
-        width: 36px;
-        height: 36px;
+        width: 38px;
+        height: 38px;
+        border-radius: 10px;
     }
 }
 
-/* Short and Landscape Screens */
+/* =========================
+   Very Small Phones
+========================= */
 
-@media (max-height: 600px) {
+@media (max-width: 360px) {
+    #uploadSection h1 {
+        font-size: 21px;
+    }
+
+    #uploadForm {
+        padding: 16px 12px;
+    }
+
+    .document-page {
+        padding: 24px 16px;
+        font-size: 13px;
+    }
+
+    #textContainer {
+        padding-left: 16px;
+        padding-right: 16px;
+        font-size: 14px;
+    }
+
+    #epubControls button {
+        width: 32px;
+        height: 46px;
+    }
+}
+
+/* =========================
+   Landscape Phones
+========================= */
+
+@media (max-width: 900px) and (orientation: landscape) {
     #uploadSection {
         min-height: 100dvh;
         padding-top: 16px;
         padding-bottom: 16px;
         gap: 14px;
     }
+
+    #uploadForm {
+        gap: 10px;
+    }
+
+    #epubContainer {
+        height: calc(100dvh - 20px);
+        margin: 10px auto;
+    }
+
+    #epubControls button {
+        width: 36px;
+        height: 46px;
+    }
+
+    #docxContainer {
+        padding-top: 54px;
+    }
+
+    #pagesContainer {
+        padding-top: 54px;
+    }
+}
+
+/* =========================
+   Short Screens
+========================= */
+
+@media (max-height: 600px) {
+    #uploadSection {
+        min-height: 100dvh;
+        padding-top: 14px;
+        padding-bottom: 14px;
+        gap: 12px;
+    }
+
+        #uploadSection h1 {
+            font-size: 21px;
+        }
 
     #epubContainer {
         height: calc(100dvh - 16px);
@@ -578,22 +826,33 @@ body.dragging-file {
 
     #epubControls button {
         width: 36px;
-        height: 48px;
+        height: 46px;
     }
 
     #docxContainer {
-        padding-top: 12px;
+        padding-top: 56px;
     }
 }
 
-@media (max-width: 900px) and (orientation: landscape) {
-    #epubContainer {
-        height: calc(100dvh - 16px);
-        margin: 8px auto;
-    }
+/* =========================
+   Reduced Motion
+========================= */
 
-    #uploadSection {
-        padding-top: 12px;
-        padding-bottom: 12px;
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
     }
+}
+
+/* =========================
+   Hidden Elements
+========================= */
+
+[hidden] {
+    display: none !important;
 }

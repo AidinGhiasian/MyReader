@@ -30,6 +30,9 @@ let epubRendition = null;
 let pdfDocument = null;
 let pdfRenderVersion = 0;
 let pdfResizeTimer = null;
+let pdfRenderTasks = new Set();
+let lastPdfRenderWidth = 0;
+let lastPdfPixelRatio = 0;
 let dragCounter = 0;
 
 const allowedExtensions = [
@@ -39,8 +42,6 @@ const allowedExtensions = [
     "epub",
     "xlsx"
 ];
-
-// Automatic Text Direction
 
 function applyAutoDirection(root) {
     const rootElement =
@@ -63,8 +64,6 @@ function applyAutoDirection(root) {
     });
 }
 
-// Upload Form
-
 uploadForm.addEventListener("submit", async event => {
     event.preventDefault();
 
@@ -74,8 +73,6 @@ uploadForm.addEventListener("submit", async event => {
 
     await uploadFile(file);
 });
-
-// Shared Upload Function
 
 async function uploadFile(file) {
     const extension = file.name.split(".").pop().toLowerCase();
@@ -88,13 +85,7 @@ async function uploadFile(file) {
     errorMessage.hidden = true;
     errorMessage.textContent = "";
 
-    pdfDocument = null;
-    pdfRenderVersion++;
-
-    if (pdfResizeTimer) {
-        clearTimeout(pdfResizeTimer);
-        pdfResizeTimer = null;
-    }
+    releasePdfDocument();
 
     uploadSection.hidden = true;
     readingSection.hidden = false;
@@ -184,8 +175,7 @@ async function uploadFile(file) {
     catch (error) {
         console.error(error);
 
-        pdfDocument = null;
-        pdfRenderVersion++;
+        releasePdfDocument();
 
         if (epubRendition) {
             epubRendition.destroy();
@@ -203,8 +193,6 @@ function showError(message) {
     errorMessage.textContent = message;
     errorMessage.hidden = false;
 }
-
-// Drag and Drop
 
 function isFileDrag(event) {
     return event.dataTransfer &&
@@ -272,46 +260,103 @@ async function openPdf(file) {
 
     const data = new Uint8Array(await file.arrayBuffer());
 
-    pdfDocument = await getDocument({ data }).promise;
+    pdfDocument = await getDocument({
+        data
+    }).promise;
 
     await renderPdfPages();
+}
+
+function getPdfRenderMetrics() {
+    return {
+        width: Math.max(
+            100,
+            pagesContainer.clientWidth - 32
+        ),
+        pixelRatio: Math.min(
+            window.devicePixelRatio || 1,
+            2.5
+        )
+    };
+}
+
+function cancelPdfRendering() {
+    pdfRenderVersion++;
+
+    for (const task of pdfRenderTasks) {
+        try {
+            task.cancel();
+        }
+        catch {
+        }
+    }
+
+    pdfRenderTasks.clear();
+}
+
+function releasePdfDocument() {
+    const previousDocument = pdfDocument;
+
+    pdfDocument = null;
+
+    cancelPdfRendering();
+
+    lastPdfRenderWidth = 0;
+    lastPdfPixelRatio = 0;
+
+    if (pdfResizeTimer) {
+        clearTimeout(pdfResizeTimer);
+        pdfResizeTimer = null;
+    }
+
+    if (previousDocument) {
+        previousDocument.destroy().catch(error => {
+            console.warn("PDF cleanup failed:", error);
+        });
+    }
 }
 
 async function renderPdfPages() {
     if (!pdfDocument || pagesContainer.hidden) return;
 
-    const currentVersion = ++pdfRenderVersion;
+    cancelPdfRendering();
+
+    const currentVersion = pdfRenderVersion;
     const pdf = pdfDocument;
+    const metrics = getPdfRenderMetrics();
+
+    lastPdfRenderWidth = metrics.width;
+    lastPdfPixelRatio = metrics.pixelRatio;
 
     pagesContainer.replaceChildren();
-
-    const containerWidth = Math.max(
-        100,
-        pagesContainer.clientWidth - 32
-    );
-
-    const pixelRatio = Math.min(
-        window.devicePixelRatio || 1,
-        2.5
-    );
 
     for (
         let pageNumber = 1;
         pageNumber <= pdf.numPages;
         pageNumber++
     ) {
-        if (currentVersion !== pdfRenderVersion) return;
+        if (
+            currentVersion !== pdfRenderVersion ||
+            pdf !== pdfDocument
+        ) {
+            return;
+        }
 
         const page = await pdf.getPage(pageNumber);
 
-        if (currentVersion !== pdfRenderVersion) return;
+        if (
+            currentVersion !== pdfRenderVersion ||
+            pdf !== pdfDocument
+        ) {
+            return;
+        }
 
         const originalViewport = page.getViewport({
             scale: 1
         });
 
         const scale = Math.min(
-            containerWidth / originalViewport.width,
+            metrics.width / originalViewport.width,
             1.5
         );
 
@@ -323,17 +368,23 @@ async function renderPdfPages() {
         const context = canvas.getContext("2d");
 
         if (!context) {
-            throw new Error("Could not create PDF rendering context.");
+            throw new Error(
+                "Could not create PDF rendering context."
+            );
         }
 
         canvas.className = "pdf-page";
+        canvas.setAttribute(
+            "aria-label",
+            `PDF page ${pageNumber}`
+        );
 
         canvas.width = Math.floor(
-            viewport.width * pixelRatio
+            viewport.width * metrics.pixelRatio
         );
 
         canvas.height = Math.floor(
-            viewport.height * pixelRatio
+            viewport.height * metrics.pixelRatio
         );
 
         canvas.style.width = `${viewport.width}px`;
@@ -341,45 +392,98 @@ async function renderPdfPages() {
 
         pagesContainer.appendChild(canvas);
 
-        await page.render({
+        const renderTask = page.render({
             canvasContext: context,
-            viewport: viewport,
-            transform: pixelRatio !== 1
+            viewport,
+            transform: metrics.pixelRatio !== 1
                 ? [
-                    pixelRatio,
+                    metrics.pixelRatio,
                     0,
                     0,
-                    pixelRatio,
+                    metrics.pixelRatio,
                     0,
                     0
                 ]
                 : null
-        }).promise;
+        });
 
-        if (currentVersion !== pdfRenderVersion) return;
+        pdfRenderTasks.add(renderTask);
+
+        try {
+            await renderTask.promise;
+        }
+        catch (error) {
+            if (currentVersion !== pdfRenderVersion) {
+                return;
+            }
+
+            throw error;
+        }
+        finally {
+            pdfRenderTasks.delete(renderTask);
+        }
     }
 }
 
 // PDF Resize
 
-window.addEventListener("resize", () => {
-    if (!pdfDocument || readingSection.hidden) return;
+function schedulePdfResize() {
+    if (
+        !pdfDocument ||
+        readingSection.hidden ||
+        pagesContainer.hidden
+    ) {
+        return;
+    }
 
     if (pdfResizeTimer) {
         clearTimeout(pdfResizeTimer);
     }
 
     pdfResizeTimer = setTimeout(async () => {
-        if (!pdfDocument || readingSection.hidden) return;
+        pdfResizeTimer = null;
+
+        if (
+            !pdfDocument ||
+            readingSection.hidden ||
+            pagesContainer.hidden
+        ) {
+            return;
+        }
+
+        const metrics = getPdfRenderMetrics();
+
+        const widthChanged =
+            Math.abs(metrics.width - lastPdfRenderWidth) > 1;
+
+        const pixelRatioChanged =
+            Math.abs(metrics.pixelRatio - lastPdfPixelRatio) > 0.01;
+
+        if (!widthChanged && !pixelRatioChanged) {
+            return;
+        }
 
         try {
             await renderPdfPages();
         }
         catch (error) {
-            console.error("PDF resize rendering failed:", error);
+            console.error(
+                "PDF resize rendering failed:",
+                error
+            );
         }
     }, 180);
-});
+}
+
+if ("ResizeObserver" in window) {
+    const pdfResizeObserver = new ResizeObserver(() => {
+        schedulePdfResize();
+    });
+
+    pdfResizeObserver.observe(pagesContainer);
+}
+
+window.addEventListener("resize", schedulePdfResize);
 
 // TXT Reader
 
@@ -423,27 +527,94 @@ async function openDocx(file) {
 
     applyAutoDirection(content);
 
-    paginateDocx(content);
+    const images = Array.from(content.querySelectorAll("img"));
+
+    await Promise.all(
+        images.map(image => {
+            if (image.complete) {
+                return Promise.resolve();
+            }
+
+            return new Promise(resolve => {
+                image.addEventListener("load", resolve, { once: true });
+                image.addEventListener("error", resolve, { once: true });
+            });
+        })
+    );
+
+    await paginateDocx(content);
 }
 
-function paginateDocx(content) {
-    let currentPage = createDocumentPage();
+async function paginateDocx(content) {
+    docxContainer.replaceChildren();
 
     const elements = Array.from(content.children);
 
+    if (elements.length === 0) {
+        return;
+    }
+
+    const isMobile = window.matchMedia(
+        "(max-width: 600px)"
+    ).matches;
+
+    let currentPage = createDocumentPage();
+
+    if (isMobile) {
+        elements.forEach(element => {
+            currentPage.appendChild(element);
+        });
+
+        return;
+    }
+
+    let currentPageIsOverflowing = false;
+
     for (const element of elements) {
+        if (currentPageIsOverflowing) {
+            currentPage = createDocumentPage();
+            currentPageIsOverflowing = false;
+        }
+
         currentPage.appendChild(element);
 
-        if (
-            currentPage.scrollHeight > currentPage.clientHeight &&
-            currentPage.children.length > 1
-        ) {
+        if (fitsInsidePage(currentPage, element)) {
+            continue;
+        }
+
+        if (currentPage.children.length > 1) {
             currentPage.removeChild(element);
 
             currentPage = createDocumentPage();
             currentPage.appendChild(element);
         }
+
+        if (!fitsInsidePage(currentPage, element)) {
+            expandDocumentPage(currentPage);
+            currentPageIsOverflowing = true;
+        }
     }
+}
+
+function fitsInsidePage(page, element) {
+    const pageRect = page.getBoundingClientRect();
+    const elementRect = element.getBoundingClientRect();
+
+    const styles = window.getComputedStyle(page);
+
+    const bottomPadding =
+        parseFloat(styles.paddingBottom) || 0;
+
+    const availableBottom =
+        pageRect.bottom - bottomPadding;
+
+    return elementRect.bottom <= availableBottom + 1;
+}
+
+function expandDocumentPage(page) {
+    page.style.height = "auto";
+
+    page.style.minHeight = "1123px";
 }
 
 function createDocumentPage() {
