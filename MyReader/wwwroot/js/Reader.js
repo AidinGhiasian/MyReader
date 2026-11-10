@@ -27,6 +27,9 @@ const errorMessage = document.getElementById("errorMessage");
 const dropOverlay = document.getElementById("dropOverlay");
 
 let epubRendition = null;
+let pdfDocument = null;
+let pdfRenderVersion = 0;
+let pdfResizeTimer = null;
 let dragCounter = 0;
 
 const allowedExtensions = [
@@ -62,7 +65,7 @@ function applyAutoDirection(root) {
 
 // Upload Form
 
-uploadForm.addEventListener("submit", async (event) => {
+uploadForm.addEventListener("submit", async event => {
     event.preventDefault();
 
     const file = fileInput.files[0];
@@ -84,6 +87,14 @@ async function uploadFile(file) {
 
     errorMessage.hidden = true;
     errorMessage.textContent = "";
+
+    pdfDocument = null;
+    pdfRenderVersion++;
+
+    if (pdfResizeTimer) {
+        clearTimeout(pdfResizeTimer);
+        pdfResizeTimer = null;
+    }
 
     uploadSection.hidden = true;
     readingSection.hidden = false;
@@ -173,6 +184,14 @@ async function uploadFile(file) {
     catch (error) {
         console.error(error);
 
+        pdfDocument = null;
+        pdfRenderVersion++;
+
+        if (epubRendition) {
+            epubRendition.destroy();
+            epubRendition = null;
+        }
+
         readingSection.hidden = true;
         uploadSection.hidden = false;
 
@@ -225,6 +244,8 @@ document.addEventListener("dragleave", event => {
 });
 
 document.addEventListener("drop", async event => {
+    if (!isFileDrag(event)) return;
+
     event.preventDefault();
 
     dragCounter = 0;
@@ -250,36 +271,115 @@ async function openPdf(file) {
     pagesContainer.hidden = false;
 
     const data = new Uint8Array(await file.arrayBuffer());
-    const pdf = await getDocument({ data }).promise;
 
-    for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber++) {
+    pdfDocument = await getDocument({ data }).promise;
+
+    await renderPdfPages();
+}
+
+async function renderPdfPages() {
+    if (!pdfDocument || pagesContainer.hidden) return;
+
+    const currentVersion = ++pdfRenderVersion;
+    const pdf = pdfDocument;
+
+    pagesContainer.replaceChildren();
+
+    const containerWidth = Math.max(
+        100,
+        pagesContainer.clientWidth - 32
+    );
+
+    const pixelRatio = Math.min(
+        window.devicePixelRatio || 1,
+        2.5
+    );
+
+    for (
+        let pageNumber = 1;
+        pageNumber <= pdf.numPages;
+        pageNumber++
+    ) {
+        if (currentVersion !== pdfRenderVersion) return;
+
         const page = await pdf.getPage(pageNumber);
 
-        const containerWidth = pagesContainer.clientWidth - 32;
-        const originalViewport = page.getViewport({ scale: 1 });
+        if (currentVersion !== pdfRenderVersion) return;
+
+        const originalViewport = page.getViewport({
+            scale: 1
+        });
 
         const scale = Math.min(
             containerWidth / originalViewport.width,
             1.5
         );
 
-        const viewport = page.getViewport({ scale });
+        const viewport = page.getViewport({
+            scale: Math.max(scale, 0.1)
+        });
 
         const canvas = document.createElement("canvas");
         const context = canvas.getContext("2d");
 
+        if (!context) {
+            throw new Error("Could not create PDF rendering context.");
+        }
+
         canvas.className = "pdf-page";
-        canvas.width = Math.floor(viewport.width);
-        canvas.height = Math.floor(viewport.height);
+
+        canvas.width = Math.floor(
+            viewport.width * pixelRatio
+        );
+
+        canvas.height = Math.floor(
+            viewport.height * pixelRatio
+        );
+
+        canvas.style.width = `${viewport.width}px`;
+        canvas.style.height = `${viewport.height}px`;
 
         pagesContainer.appendChild(canvas);
 
         await page.render({
             canvasContext: context,
-            viewport: viewport
+            viewport: viewport,
+            transform: pixelRatio !== 1
+                ? [
+                    pixelRatio,
+                    0,
+                    0,
+                    pixelRatio,
+                    0,
+                    0
+                ]
+                : null
         }).promise;
+
+        if (currentVersion !== pdfRenderVersion) return;
     }
 }
+
+// PDF Resize
+
+window.addEventListener("resize", () => {
+    if (!pdfDocument || readingSection.hidden) return;
+
+    if (pdfResizeTimer) {
+        clearTimeout(pdfResizeTimer);
+    }
+
+    pdfResizeTimer = setTimeout(async () => {
+        if (!pdfDocument || readingSection.hidden) return;
+
+        try {
+            await renderPdfPages();
+        }
+        catch (error) {
+            console.error("PDF resize rendering failed:", error);
+        }
+    }, 180);
+});
 
 // TXT Reader
 
@@ -348,6 +448,7 @@ function paginateDocx(content) {
 
 function createDocumentPage() {
     const page = document.createElement("div");
+
     page.className = "document-page";
     page.setAttribute("dir", "auto");
 
@@ -401,7 +502,7 @@ epubNext.addEventListener("click", async () => {
     }
 });
 
-document.addEventListener("keydown", async (event) => {
+document.addEventListener("keydown", async event => {
     if (!epubRendition || epubContainer.hidden) {
         return;
     }
@@ -481,6 +582,7 @@ async function openXlsx(file) {
         );
 
         const table = document.createElement("table");
+
         table.className = "xlsx-table";
         table.setAttribute("dir", "auto");
 
